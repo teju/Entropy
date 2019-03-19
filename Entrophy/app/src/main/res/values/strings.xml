@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="title_activity_welcome_page">WelcomePage</string>
+    <string name="welcome_page_Share_your_Like">It’s time to Share your Likes &amp; Dislikes in person with those whom you care!</string>
+    <string name="welcome_page_accept">Tap “Accept &amp; Continue” to accept</string>
+    <string name="welcome_page_Entrophy_Terms">Entrophy Terms of Service &amp; Privacy Policy</string>
+    <string name="enter_phone_number_sms_otp">Entrophy will send an SMS with OTP\n (One-Time Password) to verify your phone number.</string>
+    <string name="enter_phone_number_sms_charges">Carrier SMS charges may apply</string>
+    <string name="otp_verification">Enter the verification number that’s\n sent to you over SMS.</string>
+    <string name="otp_verification_success">Your Phone\n Number is\n Successfully\n Verified!</string>
+
+</resources>
