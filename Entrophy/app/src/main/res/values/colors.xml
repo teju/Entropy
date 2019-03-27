@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#007000</color>
+    <color name="green">#007000</color>
+    <color name="nav_green_bg">#9b00a225</color>
     <color name="colorPrimaryDark">#ffffff</color>
-    <color name="colorAccent">#ffffff</color>
+    <color name="colorAccent">#007000</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
+    <color name="alphablack">#653b3b3b</color>
     <color name="dark_gray">#99000000</color>
     <color name="light_gray">#767676</color>
     <color name="light_blue">#4a90e2</color>
+    <color name="background_gray">#f5f5f5</color>
+    <color name="search_gray">#33000000</color>
+    <color name="tabUnselectedIconColor">#757575</color>
+    <color name="red">#757575</color>
+    
 </resources>

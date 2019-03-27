@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Entrophy</string>
     <string name="title_activity_welcome_page">WelcomePage</string>
     <string name="welcome_page_Share_your_Like">It’s time to Share your Likes &amp; Dislikes in person with those whom you care!</string>
     <string name="welcome_page_accept">Tap “Accept &amp; Continue” to accept</string>
@@ -8,5 +8,16 @@
     <string name="enter_phone_number_sms_charges">Carrier SMS charges may apply</string>
     <string name="otp_verification">Enter the verification number that’s\n sent to you over SMS.</string>
     <string name="otp_verification_success">Your Phone\n Number is\n Successfully\n Verified!</string>
+    <string name="all_set_1">Friends who accept your invitation will appear on your dashboard. !</string>
+    <string name="all_set_2">Soon after that, Entrophy will send notifications in real-time whenever your friend is around.</string>
+    <string name="all_set_3">Now, it’s time to invite your close ones to Entrophy.</string>
 
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="tab1text">Your friends’ profile photos appear here as and when they accept your invite.</string>
+    <string name="tab1text2">Don’t worry, when that happens, you’ll receive a notification!</string>
+    <string name="tab2text">Your friends’ profile photos along with their location and distance from your current location appear here!</string>
+    <string name="tab3text">You’ll get a bird’s eye view about distribution of your friends around the globe!</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

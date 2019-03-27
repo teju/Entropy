@@ -1,18 +1,26 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
         <item name="android:buttonStyle">@style/RobotoButtonStyle</item>
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@color/black</item>
+        <item name="android:activatedBackgroundIndicator">@drawable/drawer_item_bg</item>
 
     </style>
 
+    <style name="NavigationDrawerStyling" parent="ThemeOverlay.AppCompat.Light">
+        <item name="colorControlHighlight">@color/nav_green_bg</item>
+    </style>
+    <style name="SwitchCompatStyle" >
+        <item name="thumbTint">@color/switch_color</item>
+        <item name="trackTint">@color/switch_color</item>
+    </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
@@ -21,5 +29,19 @@
     </style>
     <style name="RobotoButtonStyle" parent="android:Widget.Holo.Button">
         <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+    <style name="checkBoxStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">#007000</item>
+        <item name="android:textColorSecondary">#767676</item>
+    </style>
+    <style name="SearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!-- Gets rid of the search icon -->
+        <!-- Gets rid of the "underline" in the text -->
+        <item name="android:textColorHint">@color/light_gray</item>
+        <item name="submitBackground">@null</item>
+
+        <!-- Gets rid of the search icon when the SearchView is expanded -->
+        <!-- The hint text that appears when the user has not typed anything -->
+        <item name="queryHint">Search</item>
     </style>
 </resources>

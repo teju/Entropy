@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.bigbangbutton.editcodeview.EditCodeListener;
 import com.bigbangbutton.editcodeview.EditCodeView;
 import com.entrophy.helper.Helper;
 
@@ -25,9 +26,11 @@ public class EnterPhoneNumber extends Activity implements View.OnClickListener{
         init();
     }
     public void init(){
+
         phone_number = (EditCodeView)findViewById(R.id.phone_number);
         send_otp = (Button)findViewById(R.id.send_otp);
         send_otp.setOnClickListener(this);
+        send_otp.setEnabled(false);
         phone_number.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
@@ -41,6 +44,19 @@ public class EnterPhoneNumber extends Activity implements View.OnClickListener{
         country_code = (TextView)findViewById(R.id.country_code);
         Typeface boldTypeface = Typeface.defaultFromStyle(Typeface.NORMAL);
         country_code.setTypeface(boldTypeface);
+        phone_number.setEditCodeListener(new EditCodeListener() {
+            @Override
+            public void onCodeReady(String code) {
+                if(code.length() != 0) {
+                    send_otp.setEnabled(true);
+                    send_otp.setBackground(getResources().getDrawable(R.drawable.rounded_button_green));
+                } else {
+                    send_otp.setEnabled(false);
+                    send_otp.setBackground(getResources().getDrawable(R.drawable.rounded_button_gray));
+                }
+            }
+        });
+
     }
 
 

@@ -8,10 +8,9 @@
     <!-- Wall paper -->
     <android.support.v4.view.ViewPager
         android:id="@+id/pager_introduction"
-        android:layout_width="250dp"
+        android:layout_width="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_height="260dp"
-        android:layout_marginTop="40dp"
+        android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         android:src="@drawable/introduction_image_1"
         android:scaleType="fitXY"
@@ -22,6 +21,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
+        android:visibility="gone"
         android:layout_above="@+id/button_layout"
         android:layout_height="wrap_content">
         <TextView
@@ -50,7 +50,7 @@
         android:layout_width="match_parent"
         android:id="@+id/button_layout"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="30dp"
         android:layout_height="wrap_content">
         <LinearLayout
             android:id="@+id/viewPagerCountDots"
@@ -58,20 +58,20 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="30dp"
+            android:visibility="gone"
             android:layout_gravity="center_horizontal"
             android:orientation="horizontal"
             android:clickable="true"/>
         <Button
             android:layout_width="200dp"
             android:textColor="@color/white"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:id="@+id/done"
-            android:text="Done"
             android:layout_marginTop="30dp"
             android:layout_centerHorizontal="true"
             android:visibility="visible"
             android:textAllCaps="true"
-            android:background="@drawable/rounded_button_green" />
+            android:background="@android:color/transparent" />
     </RelativeLayout>
 
 </RelativeLayout>

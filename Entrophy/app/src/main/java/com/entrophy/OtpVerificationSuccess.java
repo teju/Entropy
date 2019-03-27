@@ -25,7 +25,7 @@ public class OtpVerificationSuccess extends Activity implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-        if(view.getId() == R.id.verify) {
+        if(view.getId() == R.id.profile_setup) {
             Intent i = new Intent(this, LetsConnect.class);
             startActivity(i);
         }

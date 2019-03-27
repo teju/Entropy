@@ -26,6 +26,7 @@ public class OTPVerification extends Activity implements View.OnClickListener{
         otp_number = (EditCodeView)findViewById(R.id.otp_number);
         verify = (Button)findViewById(R.id.verify);
         verify.setOnClickListener(this);
+        verify.setEnabled(false);
         otp_number.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
@@ -40,8 +41,10 @@ public class OTPVerification extends Activity implements View.OnClickListener{
             @Override
             public void onCodeReady(String code) {
                 if(code.length() != 0) {
+                    verify.setEnabled(true);
                     verify.setBackground(getResources().getDrawable(R.drawable.rounded_button_green));
                 } else {
+                    verify.setEnabled(false);
                     verify.setBackground(getResources().getDrawable(R.drawable.rounded_button_gray));
                 }
             }
@@ -55,6 +58,5 @@ public class OTPVerification extends Activity implements View.OnClickListener{
             Intent i = new Intent(this, OtpVerificationSuccess.class);
             startActivity(i);
         }
-
     }
 }

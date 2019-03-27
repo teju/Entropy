@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     private LinearLayout pager_indicator;
     public int currentimageindex = 0;
     private int[] images = {R.drawable.introduction_image_1, R.drawable.introduction_image_2,
-            R.drawable.introduction_image_3, R.drawable.introduction_image_3};
+            R.drawable.introduction_image_3, R.drawable.introduction_image_4};
     String[] description = {"Never miss an opportunity to hangout with your friends in person.",
             "Know where your friends are at any point in time. No more guessing.",
             "Keep in touch only with those whom you care and be up-to-date about your friends.",
@@ -200,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
             done.setVisibility(View.GONE);
 
         }
+
     }
 
     @Override
