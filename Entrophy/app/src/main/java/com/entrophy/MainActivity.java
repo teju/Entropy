@@ -21,6 +21,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.entrophy.helper.Constants;
+import com.entrophy.helper.SharedPreference;
+
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     }
 
     public void init() {
+        Constants.checkContactsPermission(this);
         pager_introduction = (ViewPager)findViewById(R.id.pager_introduction);
         pager_introduction.setOnPageChangeListener(this);
         pager_indicator = (LinearLayout)findViewById(R.id.viewPagerCountDots);
@@ -116,16 +120,19 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
 
         // Auto start of viewpager
         final Handler handler = new Handler();
+        // Auto start of viewpager
         final Runnable Update = new Runnable() {
             public void run() {
+                System.out.println("Handler " + currentPage + " continue_animation " + continue_animation);
                 if(continue_animation) {
-
-                    System.out.println("Handler " + currentPage +" continue_animation "+ continue_animation);
-                    if (currentPage == NUM_PAGES - 1) {
-                        currentPage = 0;
-                    }
                     pager_introduction.setCurrentItem(currentPage++, true);
+                    if (currentPage == NUM_PAGES ) {
+                        currentPage = 0;
+                        continue_animation = false;
+
+                    }
                 }
+
             }
         };
         Timer swipeTimer = new Timer();
@@ -133,14 +140,12 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
             @Override
             public void run() {
                 if(continue_animation) {
-                    System.out.println("Handler swipeTimer " +" continue_animation "+ continue_animation);
-
+                    System.out.println("Handler swipeTimer " + " continue_animation " +
+                            continue_animation + " currentPage " + currentPage);
                     handler.post(Update);
+                }
 
-                }
-                if (currentPage == NUM_PAGES - 1) {
-                    continue_animation = false;
-                }
+
             }
         }, delay, period);
     }
@@ -231,8 +236,16 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
     @Override
     public void onClick(View view) {
         if(view.getId() == R.id.done) {
-            Intent intent = new Intent(this,WelcomePage.class);
-            startActivity(intent);
+            if(SharedPreference.getBool(this, Constants.KEY_IS_LOGGEDIN)) {
+                Intent intent = new Intent(this,Contacts.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Intent intent = new Intent(this,WelcomePage.class);
+                startActivity(intent);
+                finish();
+            }
+
         }
     }
 

@@ -55,7 +55,7 @@ public class DistanceFriendsList extends Fragment {
         top_view = (LinearLayout)view.findViewById(R.id.top_view);
         mAdapter = new ContactsAdapter(getActivity(),contactsList, listType, new ContactsAdapter.ContactsAdapterListener() {
             @Override
-            public void checkBoXChecked(int position, boolean b) {
+            public void checkBoXChecked(int position, boolean contactsDeos) {
 
             }
         });

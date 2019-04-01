@@ -6,6 +6,9 @@ package com.entrophy.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,19 +23,22 @@ import android.widget.TextView;
 import com.entrophy.MyProfile;
 import com.entrophy.R;
 import com.entrophy.helper.Constants;
+import com.entrophy.helper.DataBaseHelper;
 import com.entrophy.model.ContactsDeo;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
-
 
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyViewHolder> {
     private final int listType;
     private final Context context;
+    private final DataBaseHelper db;
     public ContactsAdapterListener onClickListener;
 
     private List<ContactsDeo> contactsList;
-    private boolean ischecked = false;
+
 
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -40,23 +46,28 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
         private final ImageView right_arrow;
         private final RelativeLayout viewroot;
         private final LinearLayout request;
+        private final ImageView friend_image;
         public TextView name;
         private final CheckBox checkbox;
 
         public MyViewHolder(View view) {
             super(view);
-            name = (TextView)view.findViewById(R.id.name);
-            checkbox = (CheckBox)view.findViewById(R.id.checkbox);
-            viewroot = (RelativeLayout)view.findViewById(R.id.viewroot);
-            request = (LinearLayout)view.findViewById(R.id.request);
-            right_arrow = (ImageView)view.findViewById(R.id.right_arrow);
+            name = (TextView) view.findViewById(R.id.name);
+            checkbox = (CheckBox) view.findViewById(R.id.checkbox);
+            viewroot = (RelativeLayout) view.findViewById(R.id.viewroot);
+            request = (LinearLayout) view.findViewById(R.id.request);
+            right_arrow = (ImageView) view.findViewById(R.id.right_arrow);
+            friend_image = (ImageView) view.findViewById(R.id.friend_image);
+
             checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    onClickListener.checkBoXChecked(getAdapterPosition(),b);
+                    System.out.println("onCheckedChanged  boolean " +b+" "+getAdapterPosition());
+
                 }
             });
         }
+
     }
 
 
@@ -65,6 +76,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
         this.context = context;
         this.listType = listType;
         this.onClickListener = onClickListener;
+        db = new DataBaseHelper(context);
     }
 
     @Override
@@ -76,14 +88,42 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        ContactsDeo movie = contactsList.get(position);
+    public void onBindViewHolder(final MyViewHolder holder, int position) {
+        ContactsDeo contactsDeo = contactsList.get(position);
         holder.viewroot.setTag(position);
-        holder.name.setText(movie.getName());
-        if(ischecked) {
-            holder.checkbox.setChecked(ischecked);
+        holder.checkbox.setTag(position);
+        if (contactsDeo.getName() != null && contactsDeo.getName().length() > 0) {
+            holder.name.setText(contactsDeo.getName());
         } else {
-            holder.checkbox.setChecked(ischecked);
+            holder.name.setText(contactsDeo.getPhoneNumber());
+        }
+        try {
+            if (contactsDeo.getIsselected().equals("true")) {
+                holder.checkbox.setChecked(true);
+            } else {
+                holder.checkbox.setChecked(false);
+
+            }
+            if (contactsDeo.getName() != null) {
+                String img_url = "file:///sdcard//contacts/11/photo";
+                try {
+                    Bitmap bp = MediaStore.Images.Media
+                            .getBitmap(context.getContentResolver(),
+                                    Uri.parse(contactsDeo.getImage()));
+                    holder.friend_image.setImageBitmap(bp);
+                } catch (FileNotFoundException e) {
+                    System.out.println("setImageBitmap FileNotFoundException "+e.toString());
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    System.out.println("setImageBitmap IOException "+e.toString());
+
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }catch (Exception e){
+
         }
         if(listType == Constants.ListContactsRequest) {
             holder.checkbox.setVisibility(View.GONE);
@@ -111,6 +151,22 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
                 context.startActivity(intent);
             }
         });
+        holder.checkbox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int pos = (Integer)view.getTag();
+                if(holder.checkbox.isChecked()) {
+                    db.UpdateContacts("true", contactsList.get(pos).getContact_id());
+                } else {
+                    db.UpdateContacts("false", contactsList.get(pos).getContact_id());
+                }
+                onClickListener.checkBoXChecked(pos, holder.checkbox.isChecked());
+                contactsList.clear();
+
+                contactsList = db.getContacts();
+                notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
@@ -118,14 +174,17 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
         return contactsList.size();
     }
 
-    public void add(boolean checked) {
-        this.ischecked = checked;
+    public void notifyadd() {
+        contactsList.clear();
+
+        contactsList = db.getContacts();
         notifyDataSetChanged();
     }
     public interface ContactsAdapterListener {
 
-        void checkBoXChecked(int position,boolean b);
+        void checkBoXChecked(int position,boolean contactsDeos);
 
 
     }
+
 }

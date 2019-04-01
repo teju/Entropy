@@ -13,6 +13,10 @@
         <item name="android:activatedBackgroundIndicator">@drawable/drawer_item_bg</item>
 
     </style>
+    <style name="WinDividerLargeStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">20dp</item>
+    </style>
 
     <style name="NavigationDrawerStyling" parent="ThemeOverlay.AppCompat.Light">
         <item name="colorControlHighlight">@color/nav_green_bg</item>

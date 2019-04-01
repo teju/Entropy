@@ -1,13 +1,14 @@
 package com.entrophy;
 
-import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -27,9 +28,6 @@ import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Switch;
@@ -38,6 +36,16 @@ import android.widget.TextView;
 import com.entrophy.fragments.DistanceFriendsList;
 import com.entrophy.fragments.FriendsList;
 import com.entrophy.fragments.GroupbyLocationFriends;
+import com.entrophy.helper.ConstantStrings;
+import com.entrophy.helper.Constants;
+import com.entrophy.helper.CustomToast;
+import com.entrophy.helper.Loader;
+import com.entrophy.helper.Notify;
+import com.entrophy.helper.SharedPreference;
+import com.entrophy.model.LoginApiResult;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +61,7 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
     private Switch switch_;
     private ImageView bg_view;
     private TextView sealth_text;
+    private TextView user_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +69,10 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
         setContentView(R.layout.content_home);
         initUi();
     }
+
     public void initUi() {
         sealth_text = (TextView)findViewById(R.id.sealth_text);
-
+        user_name = (TextView)findViewById(R.id.user_name);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         bg_view = (ImageView) findViewById(R.id.bg_view);
         switch_ = (Switch) findViewById(R.id.switch_);
@@ -109,52 +119,53 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
             sealth_text.setTextColor(getResources().getColor(R.color.dark_gray));
 
         }
-        switch_.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
-                if(b) {
+        switch_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(switch_.isChecked()) {
                     sealth_text.setTextColor(Color.RED);
                     bg_view.setVisibility(View.VISIBLE);
-                    final Dialog dialog = new Dialog(HomeActivity.this);
-                    dialog.setCancelable(false);
-                    //Added this lines
-                    WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-                    lp.copyFrom(dialog.getWindow().getAttributes());
-                    lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-                    lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    dialog.setContentView(R.layout.sealth_mode_popup);
-                    dialog.getWindow().setAttributes(lp);
 
-                    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-                    dialog.show();
+                    Notify.show(HomeActivity.this, "You are entering Stealth Mode for 24 hours.",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    bg_view.setVisibility(View.GONE);
 
-                    TextView ok = (TextView)dialog.findViewById(R.id.ok);
-                    TextView Back = (TextView)dialog.findViewById(R.id.back);
-                    ok.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                            bg_view.setVisibility(View.GONE);
-                        }
-                    });
-                    Back.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                            bg_view.setVisibility(View.GONE);
-                        }
-                    });
+                                    if(i == dialogInterface.BUTTON_POSITIVE) {
+                                        switch_.setActivated(true);
+                                    }
+                                    if(i == dialogInterface.BUTTON_NEGATIVE) {
+                                        switch_.setActivated(false);
 
+                                    }
+                                    callSealthUpdatelAPI();
+                                }
+
+                            },"Ok","Back");
                 } else {
+                    switch_.setActivated(false);
+                    callSealthUpdatelAPI();
                     sealth_text.setTextColor(getResources().getColor(R.color.dark_gray));
-
                 }
             }
         });
+        updateUSerData();
     }
 
+    public void updateUSerData() {
+        user_name.setText(SharedPreference.getString(this,Constants.KEY_USER_NAME));
+        String sealth_mode = SharedPreference.getString(this,Constants.KEY_SEALTH_MODE);
+        System.out.println("KEY_SEALTH_MODE "+sealth_mode);
+        if(sealth_mode.equalsIgnoreCase("Y")) {
+            switch_.setActivated(true);
+            switch_.setChecked(true);
+        } else {
+            switch_.setChecked(false);
+            switch_.setActivated(false);
+        }
+    }
 
     private void setupTabIcons() {
 
@@ -227,17 +238,39 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
          // setTextColorForMenuItem(item, R.color.colorPrimary);
-//        if(item.getItemId() == R.id.profile) {
-//            Intent i = new Intent(this,Notifications.class);
-//            startActivity(i);
-//        } else {
-//            Intent i = new Intent(this,TabbedContacts.class);
-//            startActivity(i);
-//        }
+        if(item.getItemId() == R.id.logout) {
+            Notify.show(this, "Are you sure want to logout? ", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if(i == dialogInterface.BUTTON_POSITIVE) {
+                        SharedPreference.clear(HomeActivity.this);
+                        Intent intent = new Intent(HomeActivity.this,MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            },"OK","Cancel");
 
+        }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Notify.show(this, "Are you sure want to exit? ", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if(i == dialogInterface.BUTTON_POSITIVE) {
+                    Intent a = new Intent(Intent.ACTION_MAIN);
+                    a.addCategory(Intent.CATEGORY_HOME);
+                    a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(a);
+                    finish();
+                }
+            }
+        },"OK","Cancel");
     }
 
     @Override
@@ -289,5 +322,57 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
         }
     }
 
+    public void callSealthUpdatelAPI() {
+        try {
+            String mode = "";
+            if(switch_.isActivated()) {
+                mode = "Y";
+            } else {
+                mode = "N";
+
+            }
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("stealth_mode",mode);
+            jsonObject.put("user_id", String.valueOf(SharedPreference.getInt(this,Constants.KEY_USER_ID)));
+            jsonObject.put("access_token",SharedPreference.getString(this,Constants.KEY_ACCESS_TOKEN));
+            Loader.show(this);
+
+            final String finalMode = mode;
+            Constants.invokeAPIEx(this,Constants.STEALTHMODE,jsonObject.toString(),new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message message) {
+                    Loader.hide();
+                    try {
+                        if (message != null && message.obj != null) {
+                            String result = (String) message.obj;
+                            LoginApiResult data = new Gson().fromJson(result, LoginApiResult.class);
+                            System.out.println("HomeActivityPrint callAPI Response " + result + " status " + data.getStatus());
+
+                            if (data.getStatus().equalsIgnoreCase("success")) {
+                                new CustomToast().Show_Toast(HomeActivity.this, data.getMessage(), R.color.red);
+                                SharedPreference.setString(HomeActivity.this,Constants.KEY_SEALTH_MODE, finalMode);
+                            } else {
+                                if (data.getMessage() != null) {
+                                    new CustomToast().Show_Toast(HomeActivity.this, data.getMessage(), R.color.red);
+                                } else {
+                                    new CustomToast().Show_Toast(HomeActivity.this, ConstantStrings.common_msg, R.color.red);
+                                }
+                            }
+                        } else {
+                            new CustomToast().Show_Toast(HomeActivity.this, ConstantStrings.common_msg, R.color.red);
+
+                        }
+                        return false;
+                    } catch (Exception e){
+                        new CustomToast().Show_Toast(HomeActivity.this, ConstantStrings.common_msg, R.color.red);
+
+                        return false;
+                    }
+                }
+            }));
+        } catch (Exception e){
+            System.out.println("HomeActivityPrint callAPI Exception "+e.toString());
+        }
+    }
 
 }
