@@ -238,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements ViewPager.OnPageC
         if(view.getId() == R.id.done) {
             if(SharedPreference.getBool(this, Constants.KEY_IS_LOGGEDIN)) {
                 Intent intent = new Intent(this,Contacts.class);
+                intent.putExtra("Type",Constants.ConnectionsContacts);
                 startActivity(intent);
                 finish();
             } else {

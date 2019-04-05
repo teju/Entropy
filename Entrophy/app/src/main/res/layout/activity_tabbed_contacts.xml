@@ -33,6 +33,18 @@
             android:id="@+id/back_button"
             android:textStyle="bold"
             android:layout_centerVertical="true"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect"
+            android:visibility="gone"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/green"
+            android:textSize="20dp"
+            android:id="@+id/invite_b"
+            android:layout_marginRight="20dp"
+            android:layout_centerVertical="true"/>
+
         <View
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
@@ -65,9 +77,16 @@
             app:tabIndicatorColor="@color/green"
             app:tabIndicatorHeight="4dp"
             app:tabGravity="fill"/> 
+        <View
+            android:layout_width="match_parent"
+            android:layout_below="@+id/tabs"
+            android:id="@+id/undersline"
+            android:layout_height="2dp"
+            android:background="#efefef"></View>
+
         <android.support.v4.view.ViewPager
             android:id="@+id/viewpager"
-            android:layout_below="@+id/tabs"
+            android:layout_below="@+id/undersline"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </RelativeLayout>

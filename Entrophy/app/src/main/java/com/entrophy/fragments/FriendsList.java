@@ -1,17 +1,13 @@
 package com.entrophy.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.entrophy.MyProfile;
 import com.entrophy.R;
-import com.entrophy.adapters.FrirendsListAdapter;
 import com.entrophy.model.DeoFriends;
 
 import java.util.ArrayList;
@@ -36,15 +32,15 @@ public class FriendsList extends Fragment {
 
     public void initUI () {
         friends_list = (GridView)view.findViewById(R.id.friends_list);
-        friends_list.setAdapter(new FrirendsListAdapter(getActivity(),friends,0));
-        friends_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(getActivity(),MyProfile.class);
-                intent.putExtra("friends_profile",false);
-                startActivity(intent);
-            }
-        });
+//        friends_list.setAdapter(new FrirendsListAdapter(getActivity(),friends,0));
+//        friends_list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+//                Intent intent = new Intent(getActivity(),MyProfile.class);
+//                intent.putExtra("friends_profile",false);
+//                startActivity(intent);
+//            }
+//        });
     }
 
 

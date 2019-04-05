@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.entrophy.helper.Constants;
+
 public class ConnectionSet extends Activity implements View.OnClickListener{
 
     private TextView bottom_text;
@@ -57,6 +59,7 @@ public class ConnectionSet extends Activity implements View.OnClickListener{
                 startActivity(i);
             } else {
                 Intent i = new Intent(this, Contacts.class);
+                i.putExtra("ConnectionType", Constants.InviteContacts);
                 startActivity(i);
 
             }

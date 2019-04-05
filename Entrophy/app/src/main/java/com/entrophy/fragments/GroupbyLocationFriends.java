@@ -9,10 +9,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
-import com.entrophy.R;
-import com.entrophy.adapters.FrirendsListAdapter;
-import com.entrophy.model.DeoFriends;
 import com.entrophy.GroupByLocationDetail;
+import com.entrophy.R;
+import com.entrophy.model.DeoFriends;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +40,8 @@ public class GroupbyLocationFriends extends Fragment {
                     startActivity(intent);
                 }
             });
-            friends_list.setAdapter(new FrirendsListAdapter(getActivity(), friends, 2));
+//            friends_list.setAdapter(new FrirendsListAdapter(getActivity(), friends, 2, new FrirendsListAdapter.ContactsAdapterListener() {
+//            }));
         } catch (Exception e){
             System.out.println("LayoutInflater getMeasuredWidth Exception "+e.toString());
 

@@ -55,12 +55,22 @@ public class Constants {
     public static int GeneralContactsRequest = 1;
     public static int ListContactsRequest = 3;
     public static int TabbedContacts = 4;
+    public static int ConnectionsContacts = 5;
+    public static int InviteContacts = 6;
+
+
     public static final String Login = "/api/web/user/login";
     public static final String OTP = "/api/web/user/otp";
     public static final String ENTROPYSIGNUP = "/api/web/user/entropy-signup";
     public static final String STEALTHMODE = "/api/web/profile/stealth-mode";
     public static final String PROFILEIMAGE = "/api/web/user/profile-image";
+    public static final String VALIDATECONTACTS = "/api/web/profile/validate-contacts";
+    public static final String FRIENDREQUEST = "/api/web/profile/friend-request";
+    public static final String FRIENDREQUESTLIST = "/api/web/profile/friend-request-list";
+    public static final String ACCEPTFRIENDREQUEST = "/api/web/profile/accept-friend-request";
     public static final String SERVICE_URL = "https://entropy.bikerservice.in";
+
+
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 124;
     private static final int REQUEST_PERMISSION_CODE = 100;
@@ -255,8 +265,8 @@ public class Constants {
         }
     }
 
-    public static String uploadFile(Context context,String sourceFileUri,String file_name) {
 
+    public static String uploadFile(Context context,String sourceFileUri,String file_name) {
 
         String fileName = sourceFileUri;
         int serverResponseCode = 0;
@@ -270,19 +280,18 @@ public class Constants {
         byte[] buffer;
         int maxBufferSize = 1 * 1024 * 1024;
         File sourceFile = new File(sourceFileUri);
-        System.out.println("LetsConnectPrint onSelectFromGalleryResult sourceFile "+!sourceFile.isFile());
+        System.out.println("LetsConnectPrint onSelectFromGalleryResult sourceFile "+sourceFile.isFile());
 
         if (!sourceFile.isFile()) {
             return null;
 
         }
-        else
-        {
+        else {
             try {
 
                 // open a URL connection to the Servlet
                 FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                URL url = new URL(Constants.SERVICE_URL+Constants.PROFILEIMAGE);
+                URL url = new URL(Constants.SERVICE_URL + Constants.PROFILEIMAGE);
 
                 // Open a HTTP  connection to  the URL
                 conn = (HttpURLConnection) url.openConnection();
@@ -290,17 +299,17 @@ public class Constants {
                 conn.setDoOutput(true); // Allow Outputs
                 conn.setUseCaches(false); // Don't use a Cached Copy
                 conn.setRequestMethod("POST");
-                conn.setRequestProperty("Connection", "Keep-Alive");
-                conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+                //conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=---");
+                //conn.setRequestProperty( "mimeType", "multipart/form-data");
                 conn.setRequestProperty("profile", file_name);
 
                 dos = new DataOutputStream(conn.getOutputStream());
 
                 dos.writeBytes(twoHyphens + boundary + lineEnd);
-               // dos.writeBytes("Content-Disposition: form-data; name="+uploaded_file+";filename="" + fileName + """ + lineEnd);
+                 dos.writeBytes("Content-Disposition: form-data; name=profile"+";filename="+"2dfd8d11-942e-4df6-ae8c-2fc684af0dba.jpeg" +"" + lineEnd);
 
-                        dos.writeBytes(lineEnd);
+                dos.writeBytes(lineEnd);
 
                 // create a buffer of  maximum size
                 bytesAvailable = fileInputStream.available();
@@ -329,18 +338,17 @@ public class Constants {
                 String serverResponseMessage = conn.getResponseMessage();
 
                 Log.i("uploadFile", "HTTP Response is : " + serverResponseMessage + ": " + serverResponseCode);
-                StringBuilder response  = new StringBuilder();
+                StringBuilder response = new StringBuilder();
 
-                if(serverResponseCode == 200){
-                    BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()),8192);
+                if (serverResponseCode == 200) {
+                    BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()), 8192);
                     String strLine = null;
-                    while ((strLine = input.readLine()) != null)
-                    {
+                    while ((strLine = input.readLine()) != null) {
                         response.append(strLine);
                     }
                     input.close();
-                    System.out.println("LetsConnectPrint serverResponseMessage  "+ response.toString()
-                            +" serverResponseCode "+serverResponseCode);
+                    System.out.println("LetsConnectPrint serverResponseMessage  " + response.toString()
+                            + " serverResponseCode " + serverResponseCode);
                     serverResponse = response.toString();
                 }
 
@@ -348,25 +356,95 @@ public class Constants {
                 fileInputStream.close();
                 dos.flush();
                 dos.close();
-                return  serverResponse;
+                return serverResponse;
             } catch (MalformedURLException ex) {
-                System.out.println("LetsConnectPrint MalformedURLException  "+ ex.toString());
+                System.out.println("LetsConnectPrint MalformedURLException  " + ex.toString());
 
                 ex.printStackTrace();
 
 
                 Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
             } catch (Exception e) {
-                System.out.println("LetsConnectPrint Exception  "+ e.toString());
+                System.out.println("LetsConnectPrint Exception  " + e.toString());
 
                 e.printStackTrace();
 
 
             }
+        }
             return serverResponse;
 
-        } // End else block
+//        } // End else block
+//        try {
+//            URL url = new URL(urlString);
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setReadTimeout(10000);
+//            conn.setConnectTimeout(15000);
+//            conn.setRequestMethod("POST");
+//            conn.setUseCaches(false);
+//            conn.setDoInput(true);
+//            conn.setDoOutput(true);
+//
+//            conn.setRequestProperty("Connection", "Keep-Alive");
+//            conn.addRequestProperty("Content-length", reqEntity.getContentLength()+"");
+//            conn.addRequestProperty(reqEntity.getContentType().getName(), reqEntity.getContentType().getValue());
+//
+//            OutputStream os = conn.getOutputStream();
+//            reqEntity.writeTo(conn.getOutputStream());
+//            os.close();
+//            conn.connect();
+//
+//            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+//                return readStream(conn.getInputStream());
+//            }
+//
+//    } catch (Exception e) {
+//        Log.e(TAG, "multipart post error " + e + "(" + urlString + ")");
+//    }
+       // return "";
+
     }
+
+/*
+    public static String uploadFile(Bitmap bmp, String filepath) {
+        String resp = "";
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        String upload_url = SERVICE_URL + PROFILEIMAGE;
+        bmp.compress(Bitmap.CompressFormat.JPEG, 90, bao);
+        System.out.println("LetsConnectPrint jsonString "+upload_url);
+
+        byte[] data = bao.toByteArray();
+
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpPost postRequest = new HttpPost(upload_url);
+        MultipartEntity entity = new MultipartEntity();
+        postRequest.setHeader("Content-Type", "multipart/form-data");
+
+        try {
+            // Set Data and Content-type header for the image
+            FileBody fb = new FileBody(new File(filepath), "image*/
+/* ");
+            entity.addPart("profile", fb);
+            postRequest.setEntity(entity);
+
+            org.apache.http.HttpResponse response = httpClient.execute(postRequest);
+            // Read the response
+            String jsonString = EntityUtils.toString(response.getEntity());
+            resp = jsonString;
+            Log.e("response after uploading file ", jsonString);
+            System.out.println("LetsConnectPrint jsonString "+jsonString.toString());
+
+        } catch (Exception e) {
+            System.out.println("LetsConnectPrint uploadFile "+e.toString());
+
+            Log.e("Error in uploadFile", e.getMessage());
+        }
+        return resp;
+    }
+*/
+
+
     public static List<ContactsDeo> getContact(Context context) {
         DataBaseHelper db = new DataBaseHelper(context);
 
@@ -435,7 +513,7 @@ public class Constants {
                     }
 
 
-                    db.putContacts(db,name,phNo,"false",image_uri);
+                    db.putAllContacts(db,name,phNo,"false",image_uri);
                     contactList.add(c);
 
 

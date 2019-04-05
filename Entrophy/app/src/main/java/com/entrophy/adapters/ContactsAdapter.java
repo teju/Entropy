@@ -5,10 +5,6 @@ package com.entrophy.adapters;
  */
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,14 +16,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.entrophy.MyProfile;
 import com.entrophy.R;
 import com.entrophy.helper.Constants;
 import com.entrophy.helper.DataBaseHelper;
 import com.entrophy.model.ContactsDeo;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
 
@@ -104,24 +97,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
                 holder.checkbox.setChecked(false);
 
             }
-            if (contactsDeo.getName() != null) {
-                String img_url = "file:///sdcard//contacts/11/photo";
-                try {
-                    Bitmap bp = MediaStore.Images.Media
-                            .getBitmap(context.getContentResolver(),
-                                    Uri.parse(contactsDeo.getImage()));
-                    holder.friend_image.setImageBitmap(bp);
-                } catch (FileNotFoundException e) {
-                    System.out.println("setImageBitmap FileNotFoundException "+e.toString());
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    System.out.println("setImageBitmap IOException "+e.toString());
-
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
         }catch (Exception e){
 
         }
@@ -145,10 +120,10 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
         holder.viewroot.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int i = (Integer)view.getId();
-                Intent intent = new Intent(context,MyProfile.class);
-                intent.putExtra("friends_profile",false);
-                context.startActivity(intent);
+//                int i = (Integer)view.getId();
+//                Intent intent = new Intent(context,MyProfile.class);
+//                intent.putExtra("friends_profile",false);
+//                context.startActivity(intent);
             }
         });
         holder.checkbox.setOnClickListener(new View.OnClickListener() {
@@ -156,14 +131,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
             public void onClick(View view) {
                 int pos = (Integer)view.getTag();
                 if(holder.checkbox.isChecked()) {
-                    db.UpdateContacts("true", contactsList.get(pos).getContact_id());
+                    db.UpdateAllContacts("true", contactsList.get(pos).getContact_id());
                 } else {
-                    db.UpdateContacts("false", contactsList.get(pos).getContact_id());
+                    db.UpdateAllContacts("false", contactsList.get(pos).getContact_id());
                 }
                 onClickListener.checkBoXChecked(pos, holder.checkbox.isChecked());
                 contactsList.clear();
 
-                contactsList = db.getContacts();
+                contactsList = db.getAllContacts();
                 notifyDataSetChanged();
             }
         });
@@ -176,8 +151,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
 
     public void notifyadd() {
         contactsList.clear();
-
-        contactsList = db.getContacts();
+        contactsList = db.getAllContacts();
         notifyDataSetChanged();
     }
     public interface ContactsAdapterListener {

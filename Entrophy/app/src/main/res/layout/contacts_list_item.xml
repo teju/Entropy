@@ -67,12 +67,14 @@
             <Button
                 android:layout_width="120dp"
                 android:text="Accept"
+                android:id="@+id/accept"
                 android:textColor="@color/white"
                 android:background="@drawable/rounded_button_green"
                 android:layout_height="30dp" />
             <Button
                 android:layout_width="120dp"
                 android:text="Remove"
+                android:id="@+id/remove"
                 android:background="@drawable/rounded_button_white"
                 android:textColor="#61000000"
                 android:layout_marginTop="5dp"

@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -185,14 +188,16 @@ public class LetsConnect extends Activity implements View.OnClickListener{
             }
         }, "Gallery", "Camera", true);
     }
+    private static int RESULT_LOAD_IMAGE = 1;
 
     private void chooseFromGallery() {
         _selectedUploadMode = "GALLERY";
         if(_permissionResult) {
-            Intent intent = new Intent();
-            intent.setType("image/*");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent, "Select File"), REQUEST_GALLERY);
+            Intent i = new Intent(
+                    Intent.ACTION_PICK,
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+            startActivityForResult(i, REQUEST_GALLERY);
         }
     }
     private void takePhoto() {
@@ -210,7 +215,21 @@ public class LetsConnect extends Activity implements View.OnClickListener{
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_GALLERY)
-                onSelectFromGalleryResult(data);
+                if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK && null != data) {
+                    Uri selectedImage = data.getData();
+                    String[] filePathColumn = {MediaStore.Images.Media.DATA};
+
+                    Cursor cursor = getContentResolver().query(selectedImage,
+                            filePathColumn, null, null, null);
+                    cursor.moveToFirst();
+
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    String picturePath = cursor.getString(columnIndex);
+                    cursor.close();
+                    onSelectFromGalleryResult(data);
+
+
+                }
             else if (requestCode == REQUEST_CAMERA)
                 onCaptureImageResult(data);
         }
@@ -218,26 +237,50 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
     @SuppressWarnings("deprecation")
     private void onSelectFromGalleryResult(Intent data) {
-
-        String realPath = ImageFilePath.getPath(LetsConnect.this, data.getData());
-
-        System.out.println("LetsConnectPrint onSelectFromGalleryResult "+realPath);
-        UploadImage uploadImage = new UploadImage(realPath);
-        uploadImage.execute();
+//
+//        String realPath = ImageFilePath.getPath(LetsConnect.this, data.getData());
+//
+//        System.out.println("LetsConnectPrint onSelectFromGalleryResult "+realPath);
+//        UploadImage uploadImage = new UploadImage(realPath);
+//        uploadImage.execute();
         //Constants.uploadFile(this,realPath,ImageFilePath.fileName(realPath));
        // saveAndUploadImage(bmp);
+
+
+        Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+            Cursor cursor = getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+
+             System.out.println("LetsConnectPrint onSelectFromGalleryResult "+picturePath);
+
+            Bitmap bmImg = BitmapFactory.decodeFile(picturePath);
+            BitmapDrawable background = new BitmapDrawable(bmImg);
+            profile_img.setBackgroundDrawable(background);
+            UploadImage uploadImage = new UploadImage(bmImg,picturePath);
+            uploadImage.execute();
+
+
+
     }
 
     private void onCaptureImageResult(Intent data) {
-        Bitmap photo = (Bitmap) data.getExtras().get("data");
-        Uri tempUri = getImageUri(getApplicationContext(), photo);
+//        Bitmap photo = (Bitmap) data.getExtras().get("data");
 
+//        System.out.println("LetsConnectPrint onCaptureImageResult "+realPath);
+//
+        Bitmap bmp = (Bitmap) data.getExtras().get("data");
+        Uri tempUri = getImageUri(getApplicationContext(), bmp);
         String realPath = ImageFilePath.getPath(LetsConnect.this, tempUri);
-        System.out.println("LetsConnectPrint onCaptureImageResult "+realPath);
-        UploadImage uploadImage = new UploadImage(realPath);
+        UploadImage uploadImage = new UploadImage(bmp,realPath);
         uploadImage.execute();
-//        Bitmap bmp = (Bitmap) data.getExtras().get("data");
-        //saveAndUploadImage(bmp);
+       // saveAndUploadImage(bmp);
     }
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -248,10 +291,12 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
     public class UploadImage extends AsyncTask {
 
-        private final String url;
+        private final Bitmap url;
+        private final String picturePath;
 
-        public UploadImage(String url){
+        public UploadImage(Bitmap url, String picturePath){
             this.url = url;
+            this.picturePath = picturePath;
         }
         @Override
         protected void onPreExecute() {
@@ -261,7 +306,7 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
         @Override
         protected Object doInBackground(Object[] objects) {
-            String resp = Constants.uploadFile(LetsConnect.this,url,ImageFilePath.fileName(url));
+            String resp = Constants.uploadFile(LetsConnect.this,picturePath,"21212212");
             try {
                 if (resp != null) {
                     new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.upload_success,R.color.red);
