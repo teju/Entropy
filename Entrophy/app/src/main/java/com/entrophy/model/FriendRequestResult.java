@@ -37,17 +37,17 @@ public class FriendRequestResult {
     private String message;
 
 
-    public List<FriendListObj> getFriend_request_list() {
+    public List<MatchedContacts> getFriend_request_list() {
         return friend_request_list;
     }
 
-    public void setFriend_request_list(List<FriendListObj> friend_request_list) {
+    public void setFriend_request_list(List<MatchedContacts> friend_request_list) {
         this.friend_request_list = friend_request_list;
     }
 
     @SerializedName("friend-request-list")
     @Expose
-    private List<FriendListObj> friend_request_list = new ArrayList<>();
+    private List<MatchedContacts> friend_request_list = new ArrayList<>();
 
 
 }

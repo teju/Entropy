@@ -1,7 +1,6 @@
 package com.entrophy;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,8 +18,16 @@ import android.support.annotation.RequiresApi;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.Volley;
 import com.entrophy.helper.ConstantStrings;
 import com.entrophy.helper.Constants;
 import com.entrophy.helper.CustomToast;
@@ -28,13 +35,19 @@ import com.entrophy.helper.ImageFilePath;
 import com.entrophy.helper.Loader;
 import com.entrophy.helper.Notify;
 import com.entrophy.helper.SharedPreference;
+import com.entrophy.helper.VolleyMultipartRequest;
 import com.entrophy.model.ImageUploadResult;
 import com.entrophy.model.RegisterUser;
 import com.google.gson.Gson;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.Picasso;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LetsConnect extends Activity implements View.OnClickListener{
 
@@ -45,8 +58,9 @@ public class LetsConnect extends Activity implements View.OnClickListener{
     private String _selectedUploadMode = "";
     private int REQUEST_CAMERA = 101;
     private int REQUEST_GALLERY = 102;
-    private LinearLayout profile_img;
+    private ImageView profile_img;
     private ImageUploadResult imageUploadResult;
+    private TextView plus_sign;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +71,10 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
     private void init() {
         lets_connect = (Button)findViewById(R.id.lets_connect);
-        profile_img = (LinearLayout)findViewById(R.id.profile_img);
+        profile_img = (ImageView)findViewById(R.id.profile_img);
         bio = (EditText)findViewById(R.id.bio);
         name = (EditText)findViewById(R.id.name);
+        plus_sign = (TextView) findViewById(R.id.plus_sign);
         lets_connect.setOnClickListener(this);
         profile_img.setOnClickListener(this);
 
@@ -74,11 +89,14 @@ public class LetsConnect extends Activity implements View.OnClickListener{
             }
 
             if (!isConnected) {
-                if (!Constants.isValidString(name.getText().toString()) && name.getText().toString().length() < 4) {
-                    new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.common_msg, R.color.red);
+                if (!Constants.isValidString(name.getText().toString()) || name.getText().toString().length() < 4) {
+                    new CustomToast().Show_Toast(LetsConnect.this, "Please enter valid name ", R.color.red);
 
-                } else if (!Constants.isValidString(bio.getText().toString()) && bio.getText().toString().length() < 10) {
-                    new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.common_msg, R.color.red);
+                } else if (!Constants.isValidString(bio.getText().toString()) || bio.getText().toString().length() < 10) {
+                    new CustomToast().Show_Toast(LetsConnect.this, "Please enter you bio information", R.color.red);
+
+                } else if (!Constants.isValidString(SharedPreference.getString(LetsConnect.this,Constants.KEY_IMAGEID))) {
+                    new CustomToast().Show_Toast(LetsConnect.this, "Please upload your image", R.color.red);
 
                 } else {
                     callAPI();
@@ -90,17 +108,6 @@ public class LetsConnect extends Activity implements View.OnClickListener{
         } else if(view.getId() == R.id.profile_img) {
             uploadProfilePhoto();
         }
-//        if(!isConnected) {
-//            lets_connect.setBackground(getResources().getDrawable(R.drawable.rounded_button_green));
-//            bio.setText("Professional Photographer & Blogger Working from StarBucks!");
-//            name.setText("Prathap D K");
-//            bio.setBackgroundResource(android.R.color.transparent);
-//            name.setBackgroundResource(android.R.color.transparent);
-//            isConnected = true;
-//        } else {
-//            Intent intent = new Intent(this,Contacts.class);
-//            startActivity(intent);
-//        }
 
     }
 
@@ -112,8 +119,8 @@ public class LetsConnect extends Activity implements View.OnClickListener{
             jsonObject.put("email","");
             jsonObject.put("mobile_no",getIntent().getStringExtra("phone_number"));
             jsonObject.put("bio",bio.getText().toString());
-            jsonObject.put("image_id","");
-            jsonObject.put("file_name","");
+            jsonObject.put("image_id",SharedPreference.getString(LetsConnect.this,Constants.KEY_IMAGEID));
+            jsonObject.put("file_name",SharedPreference.getString(LetsConnect.this,Constants.KEY_NAME));
             params.put("ApiSignupForm",jsonObject);
             Loader.show(this);
 
@@ -132,6 +139,9 @@ public class LetsConnect extends Activity implements View.OnClickListener{
                             SharedPreference.setString(LetsConnect.this,Constants.KEY_MOBILE_NO,data.getMobile_no());
                             SharedPreference.setString(LetsConnect.this,Constants.KEY_ACCESS_TOKEN,data.getAccess_token());
                             SharedPreference.setBool(LetsConnect.this,Constants.KEY_IS_LOGGEDIN,true);
+                            if(data.getProfile_image() != null) {
+                                SharedPreference.setString(LetsConnect.this, Constants.KEY_IMAGEPATH, data.getProfile_image().getOriginal_path());
+                            }
                             System.out.println("LetsConnectPrint callAPI Response "+result+" status " +
                                     ""+SharedPreference.getInt(LetsConnect.this,Constants.KEY_USER_ID));
 
@@ -140,8 +150,8 @@ public class LetsConnect extends Activity implements View.OnClickListener{
                             bio.setText(data.getBio());
                             lets_connect.setBackground(getResources().getDrawable(R.drawable.rounded_button_green));
                             isConnected = true;
-                            Constants.disableEditText(name);
-                            Constants.disableEditText(bio);
+                            Constants.disableEditText(name,true);
+                            Constants.disableEditText(bio,true);
 //                            Intent intent = new Intent(LetsConnect.this, OTPVerification.class);
 //                            intent.putExtra("phone_number",phone_number.getCode());
 //                            startActivity(intent);
@@ -237,16 +247,6 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
     @SuppressWarnings("deprecation")
     private void onSelectFromGalleryResult(Intent data) {
-//
-//        String realPath = ImageFilePath.getPath(LetsConnect.this, data.getData());
-//
-//        System.out.println("LetsConnectPrint onSelectFromGalleryResult "+realPath);
-//        UploadImage uploadImage = new UploadImage(realPath);
-//        uploadImage.execute();
-        //Constants.uploadFile(this,realPath,ImageFilePath.fileName(realPath));
-       // saveAndUploadImage(bmp);
-
-
         Uri selectedImage = data.getData();
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
@@ -257,45 +257,38 @@ public class LetsConnect extends Activity implements View.OnClickListener{
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
-
-             System.out.println("LetsConnectPrint onSelectFromGalleryResult "+picturePath);
-
+            String filename=picturePath.substring(picturePath.lastIndexOf("/")+1);
             Bitmap bmImg = BitmapFactory.decodeFile(picturePath);
             BitmapDrawable background = new BitmapDrawable(bmImg);
-            profile_img.setBackgroundDrawable(background);
-            UploadImage uploadImage = new UploadImage(bmImg,picturePath);
+            plus_sign.setVisibility(View.GONE);
+            UploadImage uploadImage = new UploadImage(bmImg,filename);
             uploadImage.execute();
-
-
-
     }
 
     private void onCaptureImageResult(Intent data) {
-//        Bitmap photo = (Bitmap) data.getExtras().get("data");
 
-//        System.out.println("LetsConnectPrint onCaptureImageResult "+realPath);
-//
         Bitmap bmp = (Bitmap) data.getExtras().get("data");
-        Uri tempUri = getImageUri(getApplicationContext(), bmp);
-        String realPath = ImageFilePath.getPath(LetsConnect.this, tempUri);
-        UploadImage uploadImage = new UploadImage(bmp,realPath);
+        String file_name = ImageFilePath.getPath(this,getImageUri(bmp));
+        file_name=file_name.substring(file_name.lastIndexOf("/")+1);
+
+        UploadImage uploadImage = new UploadImage(bmp, file_name);
         uploadImage.execute();
        // saveAndUploadImage(bmp);
     }
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
+
+    public Uri getImageUri(Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        String path = MediaStore.Images.Media.insertImage(getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
-
     public class UploadImage extends AsyncTask {
 
-        private final Bitmap url;
+        private final Bitmap bitmap;
         private final String picturePath;
 
-        public UploadImage(Bitmap url, String picturePath){
-            this.url = url;
+        public UploadImage(Bitmap bitmap, String picturePath){
+            this.bitmap = bitmap;
             this.picturePath = picturePath;
         }
         @Override
@@ -306,29 +299,70 @@ public class LetsConnect extends Activity implements View.OnClickListener{
 
         @Override
         protected Object doInBackground(Object[] objects) {
-            String resp = Constants.uploadFile(LetsConnect.this,picturePath,"21212212");
-            try {
-                if (resp != null) {
-                    new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.upload_success,R.color.red);
-                    imageUploadResult = new Gson().fromJson(resp, ImageUploadResult.class);
-                } else {
-                    runOnUiThread(new Runnable() {
+            String upload_URL = Constants.SERVICE_URL+ Constants.PROFILEIMAGE;
+            System.out.println("LetsConnectPrint onSelectFromGalleryResult upload_URL "+upload_URL);
+            //final File sourceFile = new File(bitmap);
+
+            RequestQueue rQueue;
+            VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, upload_URL,
+                    new Response.Listener<NetworkResponse>() {
                         @Override
-                        public void run() {
-                            new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.upload_failed,R.color.red);
+                        public void onResponse(NetworkResponse response) {
+                            String resultResponse = new String(response.data);
+                            try {
+                                final JSONObject jsonObject = new JSONObject(resultResponse);
+                                System.out.println("profile_path3233232 "+jsonObject.getString("profile_path"));
+                                SharedPreference.setString(LetsConnect.this,Constants.KEY_IMAGEID,jsonObject.getString("image_id"));
+                                SharedPreference.setString(LetsConnect.this,Constants.KEY_NAME,jsonObject.getString("file_name"));
+                                LetsConnect.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Picasso.with(LetsConnect.this).load(jsonObject.getString("profile_path"))
+                                                    .memoryPolicy(MemoryPolicy.NO_STORE)
+                                                    .error(R.drawable.face_profile)
+                                                    .placeholder(R.drawable.face_profile)
+                                                    .into(profile_img);
 
+                                        } catch (Exception e){
+
+                                        }
+                                    }
+                                });
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            System.out.println("LetsConnectPrint onSelectFromGalleryResult response "+ resultResponse);
                         }
-                    });
-                }
-            } catch (Exception e){
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        new CustomToast().Show_Toast(LetsConnect.this, ConstantStrings.upload_failed,R.color.red);
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            System.out.println("LetsConnectPrint onSelectFromGalleryResult error "+error.getMessage() );
+                        }
+                    }) {
 
-                    }
-                });
-            }
+                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                @Override
+                protected Map<String, DataPart> getByteData() {
+                    Map<String, DataPart> params = new HashMap<>();
+                    System.out.println("LetsConnectPrint onSelectFromGalleryResult ");
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+
+                    params.put("profile", new DataPart(picturePath,byteArrayOutputStream.toByteArray(), "image/jpeg"));
+
+                    return params;
+                }
+            };
+
+
+            volleyMultipartRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    0,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            rQueue = Volley.newRequestQueue(LetsConnect.this);
+            rQueue.add(volleyMultipartRequest);
             return null;
         }
 
@@ -338,4 +372,6 @@ public class LetsConnect extends Activity implements View.OnClickListener{
             Loader.hide();
         }
     }
+
+
 }

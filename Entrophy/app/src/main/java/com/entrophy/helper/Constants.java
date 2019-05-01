@@ -3,10 +3,13 @@ package com.entrophy.helper;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -19,7 +22,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import android.text.InputType;
 import android.widget.EditText;
 
 import com.android.volley.AuthFailureError;
@@ -34,15 +37,7 @@ import com.android.volley.toolbox.Volley;
 import com.entrophy.R;
 import com.entrophy.model.ContactsDeo;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,10 +47,10 @@ import java.util.List;
 
 public class Constants {
     public static int TabbedContactsRequest = 0;
-    public static int GeneralContactsRequest = 1;
     public static int ListContactsRequest = 3;
-    public static int TabbedContacts = 4;
     public static int ConnectionsContacts = 5;
+    public static int HomeConnectionsContacts = 1;
+    public static int HomeInviteFriendList = 2;
     public static int InviteContacts = 6;
 
 
@@ -68,6 +63,22 @@ public class Constants {
     public static final String FRIENDREQUEST = "/api/web/profile/friend-request";
     public static final String FRIENDREQUESTLIST = "/api/web/profile/friend-request-list";
     public static final String ACCEPTFRIENDREQUEST = "/api/web/profile/accept-friend-request";
+    public static final String PUSHNOTIFICATION = "/api/web/user/push-notification";
+    public static final String LOCATIONUPDATE = "/api/web/profile/location-update";
+    public static final String UPDATEPROFILEIMAGE = "/api/web/profile/update-profile-image";
+    public static final String USERPROFILE = "/api/web/profile/user-profile";
+    public static final String USERUPDATEPROFILE = "/api/web/profile/user-update-profile";
+    public static final String FRIENDLIST = "/api/web/profile/friend-list";
+    public static final String FRIENDPROFILEVIEW = "/api/web/profile/friend-profile-view";
+    public static final String BLOCKFRIENDREQUEST = "/api/web/profile/block-friend-request";
+    public static final String CUSTOMERTERMSCONDITION = "/api/web/user/customer-terms-condition";
+    public static final String FAQ = "/api/web/user/faq";
+    public static final String REPORTFRIEND = "/api/web/profile/report-friend";
+    public static final String USERDASHBOARDCOUNT = "/api/web/profile/user-dashboard-count";
+    public static final String LOCATIONFRIENDCOUNT = "/api/web/profile/location-friend-count";
+    public static final String LOCATIONFRIENDLIST = "/api/web/profile/location-friend-list";
+    public static final String PUSHNOTIFFICATION = "/api/web/profile/push-notiffication";
+    public static final String PUSHNOTIFFICATIONUPDATE = "/api/web/profile/push-notiffication-update";
     public static final String SERVICE_URL = "https://entropy.bikerservice.in";
 
 
@@ -80,8 +91,15 @@ public class Constants {
     public static String KEY_MOBILE_NO = "KEY_MOBILE_NO";
     public static String KEY_BIO = "KEY_BIO";
     public static String KEY_ACCESS_TOKEN = "KEY_ACCESS_TOKEN";
+    public static String KEY_FIREBASEID= "KEY_FIREBASEID";
     public static String KEY_IS_LOGGEDIN = "KEY_IS_LOGGEDIN";
     public static String KEY_SEALTH_MODE = "KEY_SEALTH_MODE";
+    public static String KEY_TEXTMESSAGE = "KEY_TEXTMESSAGE";
+    public static String KEY_IMAGEID = "KEY_IMAGEID";
+    public static String KEY_NAME = "KEY_NAME";
+    public static String KEY_IMAGEPATH = "KEY_IMAGEPATH";
+    public static String KEY_NOTIFICATION_COUNT = "KEY_NOTIFICATION_COUNT";
+    public static String KEY_FRIEND_COUNT = "KEY_FRIEND_COUNT";
     private static String phNo = "";
 
     public static boolean isValidMobile(String phone) {
@@ -100,13 +118,27 @@ public class Constants {
         }
         return false;
     }
-    public static void disableEditText(EditText editText) {
-        editText.setFocusable(false);
+
+    public static void disableEditText(EditText editText,boolean drawable) {
         editText.setEnabled(false);
-        editText.setCursorVisible(false);
-        editText.setKeyListener(null);
+        editText.setFocusable(false);
+
         editText.setBackgroundColor(Color.TRANSPARENT);
+            editText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+
     }
+
+
+    public static void enableEditText(EditText editText,boolean drawable) {
+        editText.setEnabled(true);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        editText.setFocusable(true);
+        editText.setFocusableInTouchMode(true);
+        if(drawable) {
+            editText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.lead_pencil, 0);
+        }
+    }
+
 
     public static boolean isNetworkAvailable(Context context) {
         boolean available = false;
@@ -125,12 +157,20 @@ public class Constants {
                             final Handler callback) {
 
         RequestQueue queue = Volley.newRequestQueue(context);
+        int request = Request.Method.POST;
 
+        if(postString.length()!= 0) {
+            request = Request.Method.POST;
+
+        } else {
+            request = Request.Method.GET;
+
+        }
         final String mRequestBody = postString;
         System.out.println("SYSTEMPRINT URL "+SERVICE_URL+url+" PARAMS" +mRequestBody+" ");
         if(Constants.isNetworkAvailable(context)) {
 
-            StringRequest strReq = new StringRequest(Request.Method.POST, SERVICE_URL+url,
+            StringRequest strReq = new StringRequest(request, SERVICE_URL+url,
                     new Response.Listener<String>() {
                         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
                         @Override
@@ -202,7 +242,13 @@ public class Constants {
                     DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             queue.add(strReq);
         } else {
-            new CustomToast().Show_Toast(context, ConstantStrings.no_internet,R.color.red);
+            if(url.contains("location-update")) {
+
+            } else if(url.contains("user-dashboard-count")) {
+
+            } else {
+                new CustomToast().Show_Toast(context, ConstantStrings.no_internet, R.color.red);
+            }
         }
     }
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
@@ -266,184 +312,6 @@ public class Constants {
     }
 
 
-    public static String uploadFile(Context context,String sourceFileUri,String file_name) {
-
-        String fileName = sourceFileUri;
-        int serverResponseCode = 0;
-        String serverResponse = "";
-        HttpURLConnection conn = null;
-        DataOutputStream dos = null;
-        String lineEnd = "\r\n";
-        String twoHyphens = "--";
-        String boundary = "*****";
-        int bytesRead, bytesAvailable, bufferSize;
-        byte[] buffer;
-        int maxBufferSize = 1 * 1024 * 1024;
-        File sourceFile = new File(sourceFileUri);
-        System.out.println("LetsConnectPrint onSelectFromGalleryResult sourceFile "+sourceFile.isFile());
-
-        if (!sourceFile.isFile()) {
-            return null;
-
-        }
-        else {
-            try {
-
-                // open a URL connection to the Servlet
-                FileInputStream fileInputStream = new FileInputStream(sourceFile);
-                URL url = new URL(Constants.SERVICE_URL + Constants.PROFILEIMAGE);
-
-                // Open a HTTP  connection to  the URL
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setDoInput(true); // Allow Inputs
-                conn.setDoOutput(true); // Allow Outputs
-                conn.setUseCaches(false); // Don't use a Cached Copy
-                conn.setRequestMethod("POST");
-                //conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=---");
-                //conn.setRequestProperty( "mimeType", "multipart/form-data");
-                conn.setRequestProperty("profile", file_name);
-
-                dos = new DataOutputStream(conn.getOutputStream());
-
-                dos.writeBytes(twoHyphens + boundary + lineEnd);
-                 dos.writeBytes("Content-Disposition: form-data; name=profile"+";filename="+"2dfd8d11-942e-4df6-ae8c-2fc684af0dba.jpeg" +"" + lineEnd);
-
-                dos.writeBytes(lineEnd);
-
-                // create a buffer of  maximum size
-                bytesAvailable = fileInputStream.available();
-
-                bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                buffer = new byte[bufferSize];
-
-                // read file and write it into form...
-                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-                while (bytesRead > 0) {
-
-                    dos.write(buffer, 0, bufferSize);
-                    bytesAvailable = fileInputStream.available();
-                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-                }
-
-                // send multipart form data necesssary after file data...
-                dos.writeBytes(lineEnd);
-                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-
-                // Responses from the server (code and message)
-                serverResponseCode = conn.getResponseCode();
-                String serverResponseMessage = conn.getResponseMessage();
-
-                Log.i("uploadFile", "HTTP Response is : " + serverResponseMessage + ": " + serverResponseCode);
-                StringBuilder response = new StringBuilder();
-
-                if (serverResponseCode == 200) {
-                    BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()), 8192);
-                    String strLine = null;
-                    while ((strLine = input.readLine()) != null) {
-                        response.append(strLine);
-                    }
-                    input.close();
-                    System.out.println("LetsConnectPrint serverResponseMessage  " + response.toString()
-                            + " serverResponseCode " + serverResponseCode);
-                    serverResponse = response.toString();
-                }
-
-                //close the streams //
-                fileInputStream.close();
-                dos.flush();
-                dos.close();
-                return serverResponse;
-            } catch (MalformedURLException ex) {
-                System.out.println("LetsConnectPrint MalformedURLException  " + ex.toString());
-
-                ex.printStackTrace();
-
-
-                Log.e("Upload file to server", "error: " + ex.getMessage(), ex);
-            } catch (Exception e) {
-                System.out.println("LetsConnectPrint Exception  " + e.toString());
-
-                e.printStackTrace();
-
-
-            }
-        }
-            return serverResponse;
-
-//        } // End else block
-//        try {
-//            URL url = new URL(urlString);
-//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//            conn.setReadTimeout(10000);
-//            conn.setConnectTimeout(15000);
-//            conn.setRequestMethod("POST");
-//            conn.setUseCaches(false);
-//            conn.setDoInput(true);
-//            conn.setDoOutput(true);
-//
-//            conn.setRequestProperty("Connection", "Keep-Alive");
-//            conn.addRequestProperty("Content-length", reqEntity.getContentLength()+"");
-//            conn.addRequestProperty(reqEntity.getContentType().getName(), reqEntity.getContentType().getValue());
-//
-//            OutputStream os = conn.getOutputStream();
-//            reqEntity.writeTo(conn.getOutputStream());
-//            os.close();
-//            conn.connect();
-//
-//            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//                return readStream(conn.getInputStream());
-//            }
-//
-//    } catch (Exception e) {
-//        Log.e(TAG, "multipart post error " + e + "(" + urlString + ")");
-//    }
-       // return "";
-
-    }
-
-/*
-    public static String uploadFile(Bitmap bmp, String filepath) {
-        String resp = "";
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        String upload_url = SERVICE_URL + PROFILEIMAGE;
-        bmp.compress(Bitmap.CompressFormat.JPEG, 90, bao);
-        System.out.println("LetsConnectPrint jsonString "+upload_url);
-
-        byte[] data = bao.toByteArray();
-
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpPost postRequest = new HttpPost(upload_url);
-        MultipartEntity entity = new MultipartEntity();
-        postRequest.setHeader("Content-Type", "multipart/form-data");
-
-        try {
-            // Set Data and Content-type header for the image
-            FileBody fb = new FileBody(new File(filepath), "image*/
-/* ");
-            entity.addPart("profile", fb);
-            postRequest.setEntity(entity);
-
-            org.apache.http.HttpResponse response = httpClient.execute(postRequest);
-            // Read the response
-            String jsonString = EntityUtils.toString(response.getEntity());
-            resp = jsonString;
-            Log.e("response after uploading file ", jsonString);
-            System.out.println("LetsConnectPrint jsonString "+jsonString.toString());
-
-        } catch (Exception e) {
-            System.out.println("LetsConnectPrint uploadFile "+e.toString());
-
-            Log.e("Error in uploadFile", e.getMessage());
-        }
-        return resp;
-    }
-*/
-
 
     public static List<ContactsDeo> getContact(Context context) {
         DataBaseHelper db = new DataBaseHelper(context);
@@ -502,6 +370,12 @@ public class Constants {
 
                             phNo = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                             phNo = phNo.replaceAll("\\+","");
+                            phNo = phNo.trim().replaceAll("-","").
+                                    replaceAll("\\s","").replaceAll("\"[-+.^:,]\",\"\"","");
+                            if( phNo.startsWith("91")) {
+                                phNo = phNo.replaceFirst("91","");
+                            }
+                            phNo = phNo.replaceAll("\\D+","");
                             c.setPhoneNumber(phNo);
                             image_uri = phoneCursor.getString(cursor.getColumnIndex(
                                     ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
@@ -525,18 +399,6 @@ public class Constants {
         return contactList;
     }
 
-    public void checkPermissions(Activity context){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            List<String> permissionList = new ArrayList<>();
-            permissionList.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
-            permissionList.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
-            permissionList.add(android.Manifest.permission.READ_CONTACTS);
-            permissionList.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-            if (Constants.checkRuntimePermission(context, permissionList, REQUEST_PERMISSION_CODE)) {
-            }
-        }
-    }
     @TargetApi(Build.VERSION_CODES.M)
     public static boolean checkRuntimePermission(Activity activity, List<String> permissionNeededList, int requestCode) {
         List<String> permissionsNeeded = new ArrayList<String>();
@@ -561,4 +423,27 @@ public class Constants {
         }
         return true;
     }
+
+    public static void startLocationService(Context context) {
+        Intent insertLocation = new Intent(context, InsertLocationServer.class);
+        AlarmManager insertLocationalarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent insertLocationalarmMgrpendingIntent = PendingIntent.getBroadcast(context, 0,
+                insertLocation, PendingIntent.FLAG_CANCEL_CURRENT);
+            insertLocationalarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 10000, insertLocationalarmMgrpendingIntent);
+        System.out.println("InsertLocationServer startLocationService " );
+
+    }
+
+    public static void starGPSService(Context context) {
+        Intent insertLocation = new Intent(context, GPSStatusToServer.class);
+        AlarmManager insertLocationalarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent insertLocationalarmMgrpendingIntent = PendingIntent.getBroadcast(context, 0,
+                insertLocation, PendingIntent.FLAG_CANCEL_CURRENT);
+        insertLocationalarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(), 10000, insertLocationalarmMgrpendingIntent);
+        System.out.println("starGPSService startLocationService " );
+
+    }
+
+
 }

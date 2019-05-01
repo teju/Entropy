@@ -29,23 +29,26 @@
             android:layout_height="0.5dp"
             android:background="@color/dark_gray"></View>
     </RelativeLayout>
-    <LinearLayout
+    <de.hdodenhof.circleimageview.CircleImageView
         android:layout_width="130dp"
-        android:layout_below="@+id/header"
+        android:layout_height="130dp"
         android:id="@+id/profile_img"
-        android:background="@drawable/face_profile"
         android:layout_marginTop="30dp"
+        android:layout_below="@+id/header"
         android:layout_centerHorizontal="true"
-        android:layout_height="130dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|center_vertical"
-            android:gravity="center"
-            android:textSize="40dp"
-            android:textColor="@color/light_gray"
-            android:text="+"/>
-    </LinearLayout>
+        android:src="@drawable/face_profile"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/plus_sign"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:gravity="center"
+        android:textSize="40dp"
+        android:visibility="gone"
+        android:textColor="@color/light_gray"
+        android:text="+"/>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_centerHorizontal="true"

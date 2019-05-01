@@ -15,10 +15,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.entrophy.fragments.DistanceFriendsList;
-import com.entrophy.fragments.FriendsConnectList;
+import com.entrophy.fragments.ListViewFriendsList;
+import com.entrophy.fragments.GridViewFriendsConnectList;
 import com.entrophy.fragments.InviteFriendsList;
 import com.entrophy.helper.ConstantStrings;
 import com.entrophy.helper.Constants;
@@ -37,7 +38,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TabbedContacts extends AppCompatActivity implements InviteFriendsList.InviteFriendsListListener,View.OnClickListener{
+public class TabbedContacts extends AppCompatActivity implements
+        InviteFriendsList.InviteFriendsListListener,View.OnClickListener, ViewPager.OnPageChangeListener{
 
     private ViewPager viewPager;
     private TabLayout tabLayout;
@@ -47,6 +49,7 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
     private DataBaseHelper db;
     private int type = 0;
     private JSONArray jsonArray;
+    private ImageView back_button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +64,8 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
         invite_b = (TextView) findViewById(R.id.invite_b);
         invite_b.setOnClickListener(this);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
+        back_button = (ImageView) findViewById(R.id.back_button);
+        back_button.setOnClickListener(this);
         setupViewPager();
         tabLayout.setupWithViewPager(viewPager);
     }
@@ -68,8 +73,8 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
     private void setupViewPager() {
         try {
 
-            DistanceFriendsList distanceFriendsList = new DistanceFriendsList();
-            FriendsConnectList friendsRequestList = new FriendsConnectList();
+            ListViewFriendsList distanceFriendsList = new ListViewFriendsList();
+            GridViewFriendsConnectList friendsRequestList = new GridViewFriendsConnectList();
             friendsRequestList.setOnEventListener(this);
             InviteFriendsList inviteFriendsList = new InviteFriendsList();
             inviteFriendsList.setOnEventListener(this);
@@ -80,6 +85,7 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
             adapter.addFrag(friendsRequestList, "Connect");
             adapter.addFrag(inviteFriendsList, "Invite");
             viewPager.setAdapter(adapter);
+            viewPager.setOnPageChangeListener(this);
         } catch (Exception e){
             System.out.println("Exception1234 setupViewPager"+e.toString());
 
@@ -94,6 +100,12 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
             invite_b.setVisibility(View.VISIBLE);
         } else {
             invite_b.setVisibility(View.GONE);
+        }
+        if(type == Constants.ConnectionsContacts) {
+            invite_b.setText("Connect");
+        } else {
+            invite_b.setText("Invite");
+
         }
         System.out.println("SelectAllListner "+contactsList.size());
 
@@ -119,28 +131,22 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
         System.out.println("sendSms1232112 "+sel_cat);
         if(smstype == 1) {
             Intent smsIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + sel_cat));
-            smsIntent.putExtra("sms_body", "sms message goes here");
+            smsIntent.putExtra("sms_body",  SharedPreference.getString(TabbedContacts.this,Constants.KEY_TEXTMESSAGE));
             try {
-                startActivity(smsIntent);
+                startActivityForResult(smsIntent,1);
             } catch (android.content.ActivityNotFoundException ex) {
                 new CustomToast().Show_Toast(TabbedContacts.this, "SMS faild, please try again later", R.color.red);
 
             }
         } else {
-//            startActivity(i);
-            String smsNumber = sel_cat; // E164 format without '+' sign
-            if(!smsNumber.startsWith("91")) {
-                smsNumber = "91"+smsNumber;
-            }
             Intent sendIntent = new Intent(Intent.ACTION_SEND);
             sendIntent.setType("text/plain");
-            sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
-            sendIntent.putExtra("jid", smsNumber + "@s.whatsapp.net"); //phone number without "+" prefix
+            sendIntent.putExtra(Intent.EXTRA_TEXT,  SharedPreference.getString(TabbedContacts.this,Constants.KEY_TEXTMESSAGE));
             sendIntent.setPackage("com.whatsapp");
             startActivityForResult(Intent.createChooser(sendIntent, "Share via"),1);
 
-            //startActivity(sendIntent);
         }
+//
     }
 
     @Override
@@ -148,23 +154,16 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
         if(view.getId() == R.id.invite_b) {
             if(selectallList.size() != 0) {
                 if (type == Constants.InviteContacts) {
-                    Notify.show(TabbedContacts.this, "Invite Friends through WhatsApp or send SMS", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            if (i == dialogInterface.BUTTON_POSITIVE) {
-                                sendSms(2);
+                        sendSms(1);
 
-                            } else {
-                                sendSms(1);
-                            }
-                        }
-                    }, "WhatsApp", "SMS");
                 } else {
                     addConntectionJSon();
                 }
             } else {
                 new CustomToast().Show_Toast(TabbedContacts.this, "Please Select atlease 1 contact", R.color.red);
             }
+        } else if(view.getId() == R.id.back_button) {
+            super.onBackPressed();
         }
     }
 
@@ -199,6 +198,47 @@ public class TabbedContacts extends AppCompatActivity implements InviteFriendsLi
         } catch (Exception e){
             System.out.println("LetsConnectPrint callAPI Exception "+e.toString());
         }
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        invite_b.setVisibility(View.GONE);
+
+        if(position == 2) {
+
+            Notify.show(TabbedContacts.this, "Invite Friends through WhatsApp or send SMS", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (i == dialogInterface.BUTTON_POSITIVE) {
+                        sendSms(2);
+                    }
+                }
+            }, "WhatsApp", "SMS");
+
+        }
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        invite_b.setVisibility(View.GONE);
+
+        if(position == 2) {
+            Notify.show(TabbedContacts.this, "Invite Friends through WhatsApp or send SMS", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if (i == dialogInterface.BUTTON_POSITIVE) {
+                        sendSms(2);
+                    }
+                }
+            }, "WhatsApp", "SMS");
+
+        }
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
 

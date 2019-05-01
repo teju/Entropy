@@ -109,7 +109,11 @@ public class OTPVerification extends Activity implements View.OnClickListener{
                                 SharedPreference.setString(OTPVerification.this,Constants.KEY_USER_NAME,data.getName());
                                 SharedPreference.setString(OTPVerification.this,Constants.KEY_MOBILE_NO,getIntent().getStringExtra("phone_number"));
                                 SharedPreference.setString(OTPVerification.this,Constants.KEY_ACCESS_TOKEN,data.getAccess_token());
+                                SharedPreference.setString(OTPVerification.this,Constants.KEY_TEXTMESSAGE,data.getInvitemessage());
                                 SharedPreference.setBool(OTPVerification.this,Constants.KEY_IS_LOGGEDIN,true);
+                                if(data.getProfile_image() != null) {
+                                    SharedPreference.setString(OTPVerification.this, Constants.KEY_IMAGEPATH, data.getProfile_image());
+                                }
                                 Intent intent = new Intent(OTPVerification.this,OtpVerificationSuccess.class);
                                 intent.putExtra("phone_number",getIntent().getStringExtra("phone_number"));
                                 startActivity(intent);

@@ -68,5 +68,12 @@ public class SharedPreference {
         editor.clear();
         editor.apply();
     }
+    public static void clearKEy(Context context,String Key) {
+            SharedPreferences.Editor editor = SharedPreference.getEditor(context);
+        editor.remove(Key);
+
+        editor.commit();
+
+        }
 
 }

@@ -97,6 +97,17 @@ public class RegisterUser {
     private String mobile_no;
 
 
+    public String getInvitemessage() {
+        return invitemessage;
+    }
+
+    public void setInvitemessage(String invitemessage) {
+        this.invitemessage = invitemessage;
+    }
+
+    @SerializedName("invite-message")
+    @Expose
+    private String invitemessage;
 
     public RegisterError getErrors() {
         return errors;
@@ -109,4 +120,16 @@ public class RegisterUser {
     @SerializedName("errors")
     @Expose
     private RegisterError errors;
+
+    public ProfilePArams getProfile_image() {
+        return profile_image;
+    }
+
+    public void setProfile_image(ProfilePArams profile_image) {
+        this.profile_image = profile_image;
+    }
+
+    @SerializedName("profile-image")
+    @Expose
+    private ProfilePArams profile_image;
 }

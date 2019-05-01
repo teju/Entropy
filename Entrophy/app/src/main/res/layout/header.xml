@@ -25,21 +25,60 @@
             android:layout_alignParentBottom="true"
             android:layout_height="0.5dp"
             android:background="@color/dark_gray"></View>
-    <ImageView
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:src="@drawable/account_multiple_plus"
-        android:layout_centerVertical="true"
-        android:id="@+id/add_friends"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="20dp"/>
-    <ImageView
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/add_friends"
-        android:src="@drawable/bell_ring"
-        android:id="@+id/notifications"
-        android:layout_centerVertical="true"
-        android:layout_marginRight="20dp"/>
+        android:layout_alignParentRight="true"
+        android:id="@+id/friend_add_ll"
+        android:layout_marginRight="15dp"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:text="21"
+            android:id="@+id/friend_count"
+            android:textColor="@color/white"
+            android:textSize="10dp"
+            android:visibility="gone"
+            android:layout_marginTop="5dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:background="@drawable/circle"
+            android:layout_marginLeft="22dp"/>
+        <ImageView
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/account_multiple_plus"
+            android:id="@+id/add_friends" />
+
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_marginRight="15dp"
+        android:id="@+id/notification_ll"
+        android:layout_toLeftOf="@+id/friend_add_ll"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/bell_ring"
+            android:id="@+id/notification" />
+        <TextView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:text="21"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/white"
+            android:id="@+id/noti_count"
+            android:visibility="gone"
+            android:textSize="10dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:background="@drawable/circle"
+            android:layout_marginLeft="16dp"/>
+
+    </RelativeLayout>
+
 
 </RelativeLayout>

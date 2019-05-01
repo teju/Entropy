@@ -14,6 +14,55 @@ public class FriendListObj {
     @Expose
     private String id ;
 
+    public String getFreind_id() {
+        return freind_id;
+    }
+
+    public void setFreind_id(String freind_id) {
+        this.freind_id = freind_id;
+    }
+
+    @SerializedName("freind_id")
+    @Expose
+    private String freind_id ;
+
+
+    @SerializedName("city")
+    @Expose
+    private String city ;
+
+    @SerializedName("state")
+    @Expose
+    private String state ;
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    @SerializedName("country")
+    @Expose
+    private String country ;
+
     @SerializedName("first_name")
     @Expose
     private String first_name ;

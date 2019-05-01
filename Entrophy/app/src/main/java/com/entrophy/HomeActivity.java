@@ -5,11 +5,10 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.ColorRes;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -23,27 +22,30 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.entrophy.fragments.DistanceFriendsList;
-import com.entrophy.fragments.FriendsList;
+import com.entrophy.fragments.ListViewFriendsList;
+import com.entrophy.fragments.GridViewFriendsConnectList;
 import com.entrophy.fragments.GroupbyLocationFriends;
 import com.entrophy.helper.ConstantStrings;
 import com.entrophy.helper.Constants;
 import com.entrophy.helper.CustomToast;
+import com.entrophy.helper.GPSTracker;
 import com.entrophy.helper.Loader;
 import com.entrophy.helper.Notify;
 import com.entrophy.helper.SharedPreference;
+import com.entrophy.model.FriendRequestResult;
 import com.entrophy.model.LoginApiResult;
 import com.google.gson.Gson;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
@@ -62,28 +64,44 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
     private ImageView bg_view;
     private TextView sealth_text;
     private TextView user_name;
+    private ImageView user_img;
+    private ImageView user_img_nav;
+    private FriendRequestResult friendRequestResult;
+    private NavigationView navigationView;
+    private View headerView;
+    private RelativeLayout notification_ll,friend_add_ll;
+    private TextView friend_count,noti_count;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_home);
-        initUi();
+
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        headerView = navigationView.inflateHeaderView(R.layout.drawer_header);
+
     }
 
     public void initUi() {
+        Constants.starGPSService(this);
+        Constants.startLocationService(this);
         sealth_text = (TextView)findViewById(R.id.sealth_text);
+        friend_count = (TextView)findViewById(R.id.friend_count);
+        noti_count = (TextView)findViewById(R.id.noti_count);
         user_name = (TextView)findViewById(R.id.user_name);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         bg_view = (ImageView) findViewById(R.id.bg_view);
         switch_ = (Switch) findViewById(R.id.switch_);
-        notifications = (ImageView) findViewById(R.id.notifications);
+        notification_ll = (RelativeLayout) findViewById(R.id.notification_ll);
+        friend_add_ll = (RelativeLayout) findViewById(R.id.friend_add_ll);
+        user_img = (ImageView) findViewById(R.id.user_img);
         add_friends = (ImageView) findViewById(R.id.add_friends);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         menu = (ImageView) findViewById(R.id.menu);
         LinearLayout my_profile = (LinearLayout) findViewById(R.id.my_profile);
         menu.setOnClickListener(this);
-        notifications.setOnClickListener(this);
-        add_friends.setOnClickListener(this);
+        notification_ll.setOnClickListener(this);
+        friend_add_ll.setOnClickListener(this);
         my_profile.setOnClickListener(this);
         setupViewPager();
         tabLayout.setupWithViewPager(viewPager);
@@ -99,7 +117,8 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        user_img_nav = (ImageView) headerView.findViewById(R.id.drawer_profile_img);
+
         navigationView.setNavigationItemSelectedListener(this);
         ColorStateList myColorStateList = new ColorStateList(
                 new int[][]{
@@ -154,16 +173,75 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
         updateUSerData();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initUi();
+        updateUSerData();
+        GPSTracker gpsTracker = new GPSTracker(this);
+        if(!gpsTracker.canGetLocation()) {
+            Notify.show(this, "GPS is not enabled. Do you want to go to settings menu?", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if(i == dialogInterface.BUTTON_POSITIVE) {
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(intent);
+                    } else {
+
+                    }
+                }
+            },"Settings","Cancel");
+        }
+        ;
+    }
+
     public void updateUSerData() {
         user_name.setText(SharedPreference.getString(this,Constants.KEY_USER_NAME));
         String sealth_mode = SharedPreference.getString(this,Constants.KEY_SEALTH_MODE);
-        System.out.println("KEY_SEALTH_MODE "+sealth_mode);
+        if(sealth_mode.length() == 0) {
+            SharedPreference.setString(this,Constants.KEY_SEALTH_MODE,"N");
+        }
+        sealth_mode = SharedPreference.getString(this,Constants.KEY_SEALTH_MODE);
+        String snoti_count = SharedPreference.getString(this,Constants.KEY_NOTIFICATION_COUNT);
+        String sfriend_count = SharedPreference.getString(this,Constants.KEY_FRIEND_COUNT);
+        System.out.println("KEY_SEALTH_MODE3321 HOME "+sealth_mode+
+                " noti_count "+noti_count+" friend_count "+friend_count +" KEY_IMAGEPATH "+SharedPreference.getString(this, Constants.KEY_IMAGEPATH));
         if(sealth_mode.equalsIgnoreCase("Y")) {
             switch_.setActivated(true);
             switch_.setChecked(true);
         } else {
             switch_.setChecked(false);
             switch_.setActivated(false);
+        }
+        try {
+            Picasso.with(this).load(SharedPreference.getString(this, Constants.KEY_IMAGEPATH))
+                    .memoryPolicy(MemoryPolicy.NO_STORE)
+                    .error(R.drawable.face_profile)
+                    .placeholder(R.drawable.face_profile)
+                    .into(user_img);
+            Picasso.with(this).load(SharedPreference.getString(this, Constants.KEY_IMAGEPATH))
+                    .memoryPolicy(MemoryPolicy.NO_STORE)
+                    .error(R.drawable.face_profile)
+                    .placeholder(R.drawable.face_profile)
+                    .into(user_img_nav);
+
+        } catch (Exception e){
+
+        }
+        if(snoti_count.length()!= 0 && Integer.parseInt(snoti_count) != 0) {
+            noti_count.setVisibility(View.VISIBLE);
+            noti_count.setText(snoti_count);
+        } else{
+            noti_count.setVisibility(View.GONE);
+
+        }
+
+        if(sfriend_count.length() != 0 && Integer.parseInt(sfriend_count) != 0) {
+            friend_count.setVisibility(View.VISIBLE);
+            friend_count.setText(sfriend_count);
+        } else{
+            friend_count.setVisibility(View.GONE);
+
         }
     }
 
@@ -180,14 +258,19 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
     }
 
 
+
     private void setupViewPager() {
         try {
-
-
             ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-            adapter.addFrag(new FriendsList(), "");
-            adapter.addFrag(new DistanceFriendsList(), "");
-            adapter.addFrag(new GroupbyLocationFriends(), "");
+            GridViewFriendsConnectList friendsConnectList = new GridViewFriendsConnectList();
+            GroupbyLocationFriends groupbyLocationFriends = new GroupbyLocationFriends();
+            friendsConnectList.setListType(Constants.HomeConnectionsContacts);
+            groupbyLocationFriends.setListType(Constants.HomeConnectionsContacts);
+            ListViewFriendsList distanceFriendsList = new ListViewFriendsList();
+            distanceFriendsList.setType(Constants.HomeInviteFriendList);
+            adapter.addFrag(friendsConnectList, "");
+            adapter.addFrag(distanceFriendsList, "");
+            adapter.addFrag(groupbyLocationFriends, "");
             viewPager.setAdapter(adapter);
         } catch (Exception e){
             System.out.println("Exception1234 setupViewPager"+e.toString());
@@ -197,16 +280,20 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
-        System.out.println("onTabSelected "+tab.getPosition());
-        int tabIconColor = ContextCompat.getColor(this, R.color.green);
-        if(tab.getPosition() == 0){
-            tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
-        }
-        if(tab.getPosition() == 1){
-            tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
-        }
-        if(tab.getPosition() == 2){
-            tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
+        try {
+            System.out.println("onTabSelected " + tab.getPosition());
+            int tabIconColor = ContextCompat.getColor(this, R.color.green);
+            if (tab.getPosition() == 0) {
+                tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
+            }
+            if (tab.getPosition() == 1) {
+                tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
+            }
+            if (tab.getPosition() == 2) {
+                tab.getIcon().setColorFilter(tabIconColor, PorterDuff.Mode.SRC_IN);
+            }
+        } catch (Exception e){
+
         }
     }
 
@@ -221,17 +308,6 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
 
     @Override
     public void onTabReselected(TabLayout.Tab tab) {
-
-    }
-    private void setTextColorForMenuItem(MenuItem menuItem, @ColorRes int color) {
-        SpannableString spanString = new SpannableString(menuItem.getTitle().toString());
-        spanString.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, color)), 0, spanString.length(), 0);
-        menuItem.setTitle(spanString);
-        Drawable drawable = menuItem.getIcon();
-        if(drawable != null) {
-            drawable.mutate();
-            drawable.setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_ATOP);
-        }
 
     }
 
@@ -251,6 +327,18 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
                 }
             },"OK","Cancel");
 
+        } else if(item.getItemId() == R.id.faq) {
+            Intent i = new Intent(HomeActivity.this,FaqActivity.class);
+            startActivity(i);
+        } else if(item.getItemId() == R.id.profile) {
+            Intent i = new Intent(this,MyProfile.class);
+            i.putExtra("friends_profile",true);
+            startActivity(i);
+        }else if(item.getItemId() == R.id.invite_friends) {
+            Intent i = new Intent(this, Contacts.class);
+            i.putExtra("ConnectionType", Constants.InviteContacts);
+            startActivity(i);
+
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -265,6 +353,7 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
                 if(i == dialogInterface.BUTTON_POSITIVE) {
                     Intent a = new Intent(Intent.ACTION_MAIN);
                     a.addCategory(Intent.CATEGORY_HOME);
+                    a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(a);
                     finish();
@@ -284,10 +373,10 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
             Intent i = new Intent(this,MyProfile.class);
             i.putExtra("friends_profile",true);
             startActivity(i);
-        }else if(view.getId() == R.id.add_friends) {
+        }else if(view.getId() == R.id.friend_add_ll) {
             Intent i = new Intent(this,TabbedContacts.class);
             startActivity(i);
-        }else if(view.getId() == R.id.notifications) {
+        }else if(view.getId() == R.id.notification_ll) {
             Intent i = new Intent(this,Notifications.class);
             startActivity(i);
         }
@@ -346,11 +435,12 @@ public class HomeActivity extends AppCompatActivity implements TabLayout.OnTabSe
                         if (message != null && message.obj != null) {
                             String result = (String) message.obj;
                             LoginApiResult data = new Gson().fromJson(result, LoginApiResult.class);
-                            System.out.println("HomeActivityPrint callAPI Response " + result + " status " + data.getStatus());
+                            System.out.println("HomeActivityPrint callAPI Response " + result + " status " + finalMode);
 
                             if (data.getStatus().equalsIgnoreCase("success")) {
                                 new CustomToast().Show_Toast(HomeActivity.this, data.getMessage(), R.color.red);
                                 SharedPreference.setString(HomeActivity.this,Constants.KEY_SEALTH_MODE, finalMode);
+                                initUi();
                             } else {
                                 if (data.getMessage() != null) {
                                     new CustomToast().Show_Toast(HomeActivity.this, data.getMessage(), R.color.red);

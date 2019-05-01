@@ -31,7 +31,12 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
     public ContactsAdapterListener onClickListener;
 
     private List<ContactsDeo> contactsList;
+    private String search_text = "";
 
+    public void notifySearchadd(String search_text) {
+        this.search_text = search_text;
+        notifyadd();
+    }
 
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
@@ -85,6 +90,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
         ContactsDeo contactsDeo = contactsList.get(position);
         holder.viewroot.setTag(position);
         holder.checkbox.setTag(position);
+        holder.friend_image.setTag(position);
         if (contactsDeo.getName() != null && contactsDeo.getName().length() > 0) {
             holder.name.setText(contactsDeo.getName());
         } else {
@@ -117,6 +123,13 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
 
 
         }
+//        if(listType == Constants.InviteContacts) {
+//            holder.city.setVisibility(View.GONE);
+//            holder.country.setVisibility(View.GONE);
+//        } else {
+//            holder.city.setVisibility(View.VISIBLE);
+//            holder.country.setVisibility(View.VISIBLE);
+//        }
         holder.viewroot.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,18 +143,26 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
             @Override
             public void onClick(View view) {
                 int pos = (Integer)view.getTag();
+                System.out.println("setOnClickListener122221 "+holder.checkbox.isChecked());
+
                 if(holder.checkbox.isChecked()) {
                     db.UpdateAllContacts("true", contactsList.get(pos).getContact_id());
                 } else {
                     db.UpdateAllContacts("false", contactsList.get(pos).getContact_id());
                 }
-                onClickListener.checkBoXChecked(pos, holder.checkbox.isChecked());
+                onClickListener.checkBoXChecked(pos, holder.checkbox.isChecked(),search_text);
                 contactsList.clear();
+                String whereclause = "";
+                if(search_text.length() != 0) {
+                    whereclause = " Where User_Phone LIKE " +
+                            "'%"+search_text+"%' OR User_Name LIKE '%"+search_text+"%'";
 
-                contactsList = db.getAllContacts();
+                }
+                contactsList = db.getAllContacts(whereclause);
                 notifyDataSetChanged();
             }
         });
+
     }
 
     @Override
@@ -150,13 +171,19 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
     }
 
     public void notifyadd() {
+        String whereclause = "";
+        if(search_text.length() != 0) {
+            whereclause = " Where User_Phone LIKE " +
+                    "'%"+search_text+"%' OR User_Name LIKE '%"+search_text+"%'";
+
+        }
         contactsList.clear();
-        contactsList = db.getAllContacts();
+        contactsList = db.getAllContacts(whereclause);
         notifyDataSetChanged();
     }
     public interface ContactsAdapterListener {
 
-        void checkBoXChecked(int position,boolean contactsDeos);
+        void checkBoXChecked(int position,boolean contactsDeos,String search_text);
 
 
     }

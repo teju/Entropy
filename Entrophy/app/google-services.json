@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "269214523780",
+    "firebase_url": "https://entrophy-6950b.firebaseio.com",
+    "project_id": "entrophy-6950b",
+    "storage_bucket": "entrophy-6950b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269214523780:android:fc59114ce005fa85",
+        "android_client_info": {
+          "package_name": "com.entrophy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjv7cAghTE5ifq7MIF981qLyS8WIIJk7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269214523780-ivsgtqs9vqpho1f8if87uqp6jd8frm5f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

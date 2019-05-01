@@ -11,6 +11,8 @@
     <string name="all_set_1">Friends who accept your invitation will appear on your dashboard. !</string>
     <string name="all_set_2">Soon after that, Entrophy will send notifications in real-time whenever your friend is around.</string>
     <string name="all_set_3">Now, it’s time to invite your close ones to Entrophy.</string>
+    <string name="invite_oters">It\'s Time to\nInvite Others.</string>
+    <string name="invite_oters_2">Invite your friends and beloved\nones,so that u can meet\nthem in person</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -20,4 +22,6 @@
     <string name="tab3text">You’ll get a bird’s eye view about distribution of your friends around the globe!</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="fcm_pref">com.bikerservice.biker.pref</string>
+    <string name="fcm_token">com.bikerservice.biker.token</string>
 </resources>

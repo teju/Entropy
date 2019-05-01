@@ -26,6 +26,7 @@ import com.entrophy.helper.Loader;
 import com.entrophy.helper.SharedPreference;
 import com.entrophy.model.ContactsDeo;
 import com.entrophy.model.FriendRequestResult;
+import com.entrophy.model.MatchedContacts;
 import com.entrophy.model.ValidateContactsFriend;
 import com.google.gson.Gson;
 
@@ -36,11 +37,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class DistanceFriendsList extends Fragment {
+public class ListViewFriendsList extends Fragment {
 
 
     private View view;
-    private List<ContactsDeo> contactsList  = new ArrayList<>();
+    private List<MatchedContacts> contactsList  = new ArrayList<>();
     private RecyclerView contacts_list_invite;
     private TabbedContactsAdapter mAdapter;
     private LinearLayout top_view;
@@ -53,12 +54,8 @@ public class DistanceFriendsList extends Fragment {
     private ValidateContactsFriend validateContactsFriend;
     private GridView contacts_list_connect;
     private LinearLayout search;
-
-    public void setTabbedContacts(boolean tabbedContacts) {
-        isTabbedContacts = tabbedContacts;
-    }
-
-    private boolean isTabbedContacts = false;
+    private int type = Constants.InviteContacts;
+    private String sealth_mode;
 
 
     @Override
@@ -85,16 +82,48 @@ public class DistanceFriendsList extends Fragment {
 
         top_view.setVisibility(View.GONE);
 
-        callGetFriendList();
 
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(type == Constants.HomeInviteFriendList) {
+            sealth_mode = SharedPreference.getString(getActivity(),Constants.KEY_SEALTH_MODE);
+            if(sealth_mode.equalsIgnoreCase("Y")) {
+                setDataFriendList();
+            } else {
+                callGetFriendList();
+            }
+        } else {
+            callGetFriendList();
+        }
+
+    }
+
     public  void setDataFriendList(){
-        if (friendRequestResult.getFriend_request_list().size() != 0) {
+        sealth_mode = SharedPreference.getString(getActivity(),Constants.KEY_SEALTH_MODE);
+        if(sealth_mode.equalsIgnoreCase("Y") && type == Constants.HomeInviteFriendList) {
+            contactsList = db.getHomeConnectedContacts();
+        } else {
+            contactsList = friendRequestResult.getFriend_request_list();
+        }
+        if (contactsList.size() != 0) {
             contacts_list_invite.setVisibility(View.VISIBLE);
             no_data.setVisibility(View.GONE);
-            mAdapter = new TabbedContactsAdapter(getActivity(),
-                    friendRequestResult.getFriend_request_list(),
-                    Constants.TabbedContactsRequest);
+
+            mAdapter = new TabbedContactsAdapter(getActivity(),contactsList,
+                    type, new TabbedContactsAdapter.RefreshAdapterListener() {
+                @Override
+                public void refreshAdapterListener(int listtype) {
+                    type = listtype;
+                    System.out.println("setDataFriendList2121 "+type);
+
+                    if(type != Constants.HomeInviteFriendList) {
+                        callGetFriendList();
+                    }
+                }
+            });
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
             contacts_list_invite.setLayoutManager(mLayoutManager);
             contacts_list_invite.setItemAnimator(new DefaultItemAnimator());
@@ -105,10 +134,6 @@ public class DistanceFriendsList extends Fragment {
 
         }
     }
-
-
-
-
 
     public void callGetFriendList() {
         Loader.show(getActivity());
@@ -121,7 +146,14 @@ public class DistanceFriendsList extends Fragment {
             jsonObject.put("limit","1000");
             Loader.show(getActivity());
 
-            Constants.invokeAPIEx(getActivity(),Constants.FRIENDREQUESTLIST,jsonObject.toString(),new Handler(new Handler.Callback() {
+            String url = "";
+            if(type == Constants.HomeInviteFriendList) {
+                url = Constants.FRIENDLIST;
+
+            } else {
+                url = Constants.FRIENDREQUESTLIST;
+            }
+            Constants.invokeAPIEx(getActivity(),url,jsonObject.toString(),new Handler(new Handler.Callback() {
                 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
                 @Override
                 public boolean handleMessage(Message message) {
@@ -131,8 +163,12 @@ public class DistanceFriendsList extends Fragment {
                         friendRequestResult = new Gson().fromJson(result, FriendRequestResult.class);
 
                         if(friendRequestResult.getStatus().equalsIgnoreCase("success")) {
-                            setDataFriendList();
-
+                            if(type == Constants.HomeInviteFriendList){
+                                db.deleteFromHomeConnectedContacts();
+                                setHomeConnectiondb();
+                            } else {
+                                setDataFriendList();
+                            }
                         } else {
                             if(friendRequestResult.getMessage() != null) {
                                 new CustomToast().Show_Toast(getActivity(), ConstantStrings.common_msg, R.color.red);
@@ -152,5 +188,20 @@ public class DistanceFriendsList extends Fragment {
             System.out.println("LetsConnectPrint callAPI Exception "+e.toString());
         }
     }
+    public void setHomeConnectiondb() {
+        for(int i =0 ;i<friendRequestResult.getFriend_request_list().size();i++) {
+            MatchedContacts matchedContacts = friendRequestResult.getFriend_request_list().get(i);
+            System.out.println("setHomeConnectiondb1233 "+matchedContacts.getName());
+            db.putHomeContacts(db,matchedContacts.getFreind_id(),matchedContacts.getName(),
+                    matchedContacts.getImage(),matchedContacts.getCity(),matchedContacts.getState(),
+                    matchedContacts.getCountry(),matchedContacts.getGps());
+        }
+        setDataFriendList();
 
+    }
+
+
+    public void setType(int type) {
+        this.type = type;
+    }
 }

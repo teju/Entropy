@@ -3,25 +3,25 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/home"
+            android:id="@+id/profile"
             android:icon="@drawable/chevron_right"
             android:title="Profile Settings" />
 
         <item
-            android:id="@+id/profile"
+            android:id="@+id/low_battery"
             android:icon="@drawable/chevron_right"
             android:title="Low Battery Settings" />
         <item
-            android:id="@+id/booking_details"
+            android:id="@+id/invite_friends"
             android:icon="@drawable/chevron_right"
             android:title="Invite Friends" />
 
         <item
-            android:id="@+id/booking_completed"
+            android:id="@+id/faq"
             android:icon="@drawable/chevron_right"
             android:title="FAQ" />
         <item
-            android:id="@+id/payment_history"
+            android:id="@+id/help"
             android:icon="@drawable/chevron_right"
             android:title="Help" />
 

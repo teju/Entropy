@@ -73,6 +73,19 @@ public class OtpApiResult {
     private String name;
 
 
+    public String getInvitemessage() {
+        return invitemessage;
+    }
+
+    public void setInvitemessage(String invitemessage) {
+        this.invitemessage = invitemessage;
+    }
+
+    @SerializedName("invite-message")
+    @Expose
+    private String invitemessage;
+
+
     public Error getErrors() {
         return errors;
     }
@@ -84,4 +97,17 @@ public class OtpApiResult {
     @SerializedName("errors")
     @Expose
     private Error errors;
+
+
+    public String getProfile_image() {
+        return profile_path;
+    }
+
+    public void setProfile_image(String profile_image) {
+        this.profile_path = profile_image;
+    }
+
+    @SerializedName("profile_path")
+    @Expose
+    private String profile_path;
 }

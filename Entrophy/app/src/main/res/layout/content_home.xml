@@ -29,7 +29,6 @@
         app:itemIconTint="@drawable/drawer_item"
         app:itemTextColor="@drawable/drawer_item"
         app:theme="@style/NavigationDrawerStyling"
-
-        app:headerLayout="@layout/drawer_header" />
+        />
 
 </android.support.v4.widget.DrawerLayout>

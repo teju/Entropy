@@ -41,7 +41,7 @@ public class InviteFriendsList extends Fragment {
     private LinearLayout top_view;
     private FriendRequestResult friendRequestResult;
     private LinearLayout no_data;
-    private TextView contacts_coutn;
+    private TextView contacts_coutn,mtext;
     private DataBaseHelper db;
     public List<ContactsDeo> addedContacts = new ArrayList<>();
     private JSONArray jsonArray;
@@ -73,6 +73,11 @@ public class InviteFriendsList extends Fragment {
         initUI();
         return view;
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        mtext.setText("Invite your friends to join Entrophy");
+    }
 
     public  void initUI() {
         db = new DataBaseHelper(getActivity());
@@ -96,10 +101,12 @@ public class InviteFriendsList extends Fragment {
                 }
                 addedContacts = db.getAddedContacts();
                 if(addedContacts.size() != 0) {
-                    contacts_coutn.setText(addedContacts.size() + " Contacts");
+                    contacts_coutn.setText(addedContacts.size() + " Contacts Selected");
                     contacts_coutn.setVisibility(View.VISIBLE);
                 } else {
-                    contacts_coutn.setVisibility(View.GONE);
+                    contactsList = db.getAllContacts("");
+                    contacts_coutn.setText(contactsList.size()+" Contacts");
+                    contacts_coutn.setVisibility(View.VISIBLE);
 
                 }
             }
@@ -112,6 +119,8 @@ public class InviteFriendsList extends Fragment {
         search = (LinearLayout)view.findViewById(R.id.search);
         no_data = (LinearLayout)view.findViewById(R.id.no_data);
         contacts_coutn = (TextView)view.findViewById(R.id.contacts_coutn);
+        contacts_coutn.setVisibility(View.VISIBLE);
+        mtext = (TextView)view.findViewById(R.id.mtext);
 
         System.out.println("DistanceFriendsList123 listType "+listType);
         setDataInvite();
@@ -120,7 +129,7 @@ public class InviteFriendsList extends Fragment {
     public void addedContacts(int position, boolean added) {
         addedContacts.clear();
         addedContacts = db.getAddedContacts();
-        List<ContactsDeo> contactsDeos = db.getAllContacts();
+        List<ContactsDeo> contactsDeos = db.getAllContacts("");
         if(added) {
             db.putAddedContacts(db,contactsDeos.get(position).getName(),
                     contactsDeos.get(position).getPhoneNumber(),"true",contactsDeos.get(position).getImage(),
@@ -130,11 +139,12 @@ public class InviteFriendsList extends Fragment {
         }
         addedContacts = db.getAddedContacts();
         if(addedContacts.size() != 0) {
-            contacts_coutn.setText(addedContacts.size() + " Contacts");
+            contacts_coutn.setText(addedContacts.size() + " Contacts Selected");
             contacts_coutn.setVisibility(View.VISIBLE);
         } else {
-            contacts_coutn.setVisibility(View.GONE);
+            contacts_coutn.setText(contactsList.size()+" Contacts");
 
+            contacts_coutn.setVisibility(View.VISIBLE);
         }
         System.out.println("addedContacts "+addedContacts.size()+ " added "+added+" "+position);
         inviteFriendsListListener.SelectAll(db.getAddedContacts(),Constants.InviteContacts);
@@ -147,16 +157,17 @@ public class InviteFriendsList extends Fragment {
         top_view.setVisibility(View.VISIBLE);
         search.setVisibility(View.VISIBLE);
         contactsList.clear();
-        contactsList = db.getAllContacts();
+        contactsList = db.getAllContacts("");
         if(contactsList.size() != 0){
             no_data.setVisibility(View.GONE);
         }
         contacts_list_invite.setVisibility(View.VISIBLE);
         contacts_list_connect.setVisibility(View.GONE);
+        contacts_coutn.setText(contactsList.size()+" Contacts");
 
-        invitemAdapter = new ContactsAdapter(getActivity(), contactsList, Constants.GeneralContactsRequest, new ContactsAdapter.ContactsAdapterListener() {
+        invitemAdapter = new ContactsAdapter(getActivity(), contactsList, Constants.InviteContacts, new ContactsAdapter.ContactsAdapterListener() {
             @Override
-            public void checkBoXChecked(int position, boolean added) {
+            public void checkBoXChecked(int position, boolean added,String search_text) {
                 addedContacts(position,added);
 
 
@@ -189,7 +200,7 @@ public class InviteFriendsList extends Fragment {
     public void selectAll() {
 
         contactsList.clear();
-        contactsList = db.getAllContacts();
+        contactsList = db.getAllContacts("");
         db.deleteFromAddedContacts("");
         for (int i =0;i<contactsList.size();i++) {
             db.putAddedContacts(db,contactsList.get(i).getName(),contactsList.get(i).getPhoneNumber(),"true",contactsList.get(i).getImage(),
